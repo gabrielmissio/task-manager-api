@@ -49,4 +49,13 @@ describe('Given the RequestValidator', () => {
       expect(response).toThrow(new Error("Cannot read property 'validate' of undefined"));
     });
   });
+
+  describe('And the schema dependency has no validate method', () => {
+    test('Then a expect it throws an error', () => {
+      const sut = new RequestValidator({ schema: {} });
+      const response = () => sut.validate({ foo: 'baar' });
+
+      expect(response).toThrow(new Error('this.schema.validate is not a function'));
+    });
+  });
 });
