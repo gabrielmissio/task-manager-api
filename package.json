@@ -11,5 +11,10 @@
     "url": "git+https://github.com/gabrielmissio/task-manager-api.git"
   },
   "author": "Missio",
-  "license": "SEE LICENSE IN LICENSE"
+  "license": "SEE LICENSE IN LICENSE",
+  "devDependencies": {
+    "eslint": "8.6.0",
+    "eslint-config-airbnb-base": "15.0.0",
+    "eslint-plugin-import": "2.25.4"
+  }
 }
