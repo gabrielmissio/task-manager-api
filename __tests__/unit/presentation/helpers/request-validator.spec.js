@@ -24,6 +24,16 @@ const makeSchemaSpy = () => {
   return new SchemaSpy();
 };
 
+const makeSchemaSpyWithError = () => {
+  class SchemaSpy {
+    validate() {
+      return { error: 'any_error' };
+    }
+  }
+
+  return new SchemaSpy();
+};
+
 const makeSut = () => {
   const schemaSpy = makeSchemaSpy();
   const sut = new RequestValidator({ schema: schemaSpy });
@@ -75,6 +85,16 @@ describe('Given the RequestValidator', () => {
       const response = sut.validate({ foo: 'baar' });
 
       expect(response).toBeUndefined();
+    });
+  });
+
+  describe('And parameters that do not meet the schema requirements are provided', () => {
+    test('Then a expect it returns the expected error', () => {
+      const schema = makeSchemaSpyWithError();
+      const sut = new RequestValidator({ schema });
+      const response = sut.validate({ foo: 'baar' });
+
+      expect(response).toBe('any_error');
     });
   });
 });
