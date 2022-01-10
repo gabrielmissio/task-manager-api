@@ -15,7 +15,8 @@ class RequestValidator {
 
 const makeSchemaSpy = () => {
   class SchemaSpy {
-    validate() {
+    validate(params) {
+      this.params = params;
       return {};
     }
   }
@@ -27,7 +28,8 @@ const makeSut = () => {
   const schemaSpy = makeSchemaSpy();
   const sut = new RequestValidator({ schema: schemaSpy });
   return {
-    sut
+    sut,
+    schemaSpy
   };
 };
 
@@ -60,6 +62,14 @@ describe('Given the RequestValidator', () => {
   });
 
   describe('And parameters that meet the schema requirements are provided', () => {
+    test('Then I expect it calls the validate method from schema dependency with the expected params', () => {
+      const { sut, schemaSpy } = makeSut();
+      const params = { foo: 'baar' };
+      sut.validate(params);
+
+      expect(schemaSpy.params).toBe(params);
+    });
+
     test('Then a expect it returns undefined', () => {
       const { sut } = makeSut();
       const response = sut.validate({ foo: 'baar' });
