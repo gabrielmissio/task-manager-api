@@ -13,6 +13,7 @@ module.exports = {
   rules: {
     'prettier/prettier': 'error',
     'no-console': 'off',
+    'class-methods-use-this': 'off',
     'linebreak-style': 'off'
   }
 };
