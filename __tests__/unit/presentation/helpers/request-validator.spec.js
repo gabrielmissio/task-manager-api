@@ -58,4 +58,13 @@ describe('Given the RequestValidator', () => {
       expect(response).toThrow(new Error('this.schema.validate is not a function'));
     });
   });
+
+  describe('And parameters that meet the schema requirements are provided', () => {
+    test('Then a expect it returns undefined', () => {
+      const { sut } = makeSut();
+      const response = sut.validate({ foo: 'baar' });
+
+      expect(response).toBeUndefined();
+    });
+  });
 });
