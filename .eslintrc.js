@@ -14,6 +14,7 @@ module.exports = {
     'prettier/prettier': 'error',
     'no-console': 'off',
     'class-methods-use-this': 'off',
+    'max-classes-per-file': 'off',
     'linebreak-style': 'off'
   }
 };
