@@ -1,17 +1,5 @@
 const { MissingParamError } = require('../../../../src/utils/errors');
-
-class RequestValidator {
-  constructor({ schema } = {}) {
-    this.schema = schema;
-  }
-
-  validate(params) {
-    if (!params) throw new MissingParamError('params');
-
-    const { error } = this.schema.validate(params);
-    return error;
-  }
-}
+const { RequestValidator } = require('../../../../src/presentation/helpers');
 
 const makeSchemaSpy = () => {
   class SchemaSpy {
