@@ -1,3 +1,5 @@
+const { InternalServerError } = require('../errors');
+
 class HttpResponse {
   static ok(data) {
     return {
@@ -16,7 +18,7 @@ class HttpResponse {
   static exceptionHandler(error) {
     return {
       statusCode: error.statusCode || 500,
-      body: error.description || 'Internal Server Error'
+      body: error.description || new InternalServerError().message
     };
   }
 }
