@@ -12,6 +12,13 @@ class HttpResponse {
       body: error.message
     };
   }
+
+  static exceptionHandler(error) {
+    return {
+      statusCode: error.statusCode,
+      body: error.message
+    };
+  }
 }
 
 const makeSut = () => {
@@ -40,7 +47,7 @@ describe('Given the HttpResponse', () => {
 
   describe('And the badRequest method is called', () => {
     let response;
-    const error = new Error('any error message');
+    const error = { message: 'any error message' };
     beforeAll(async () => {
       const { sut } = makeSut();
       response = sut.badRequest(error);
@@ -51,6 +58,23 @@ describe('Given the HttpResponse', () => {
     });
     test('Then I expect it returns the body with the provided error message', () => {
       expect(response.body).toBe(error.message);
+    });
+  });
+
+  describe('And the exceptionHandler method is called', () => {
+    describe('And statusCode and error message are provided', () => {
+      let response;
+      const error = { message: 'any error message', statusCode: 666 };
+      beforeAll(async () => {
+        const { sut } = makeSut();
+        response = sut.exceptionHandler(error);
+      });
+      test('Them I expect it returns the provided statusCode', () => {
+        expect(response.statusCode).toBe(666);
+      });
+      test('Then I expect it returns the body with the provided error message', () => {
+        expect(response.body).toBe(error.message);
+      });
     });
   });
 });
