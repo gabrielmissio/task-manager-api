@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest --color --runInBand",
+    "test": "jest --color --runInBand --silent",
     "prepare": "husky install",
     "lint": "npx eslint ."
   },
