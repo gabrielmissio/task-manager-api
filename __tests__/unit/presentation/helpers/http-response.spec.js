@@ -15,8 +15,8 @@ class HttpResponse {
 
   static exceptionHandler(error) {
     return {
-      statusCode: error.statusCode,
-      body: error.message
+      statusCode: error.statusCode || 500,
+      body: error.message || 'Internal Server Error'
     };
   }
 }
@@ -74,6 +74,20 @@ describe('Given the HttpResponse', () => {
       });
       test('Then I expect it returns the body with the provided error message', () => {
         expect(response.body).toBe(error.message);
+      });
+    });
+
+    describe('And no statusCode and error message are provided', () => {
+      let response;
+      beforeAll(async () => {
+        const { sut } = makeSut();
+        response = sut.exceptionHandler({});
+      });
+      test('Then I expect it returns statusCode 500', () => {
+        expect(response.statusCode).toBe(500);
+      });
+      test('Then I expect it returns the body with Internal Server Error message', () => {
+        expect(response.body).toBe('Internal Server Error');
       });
     });
   });
