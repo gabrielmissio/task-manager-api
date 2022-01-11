@@ -1,4 +1,5 @@
 const { HttpResponse } = require('../../../../src/presentation/helpers');
+const { InvalidRequestError } = require('../../../../src/presentation/errors');
 
 class LoginRouter {
   constructor({ requestBodyValidator } = {}) {
@@ -8,7 +9,9 @@ class LoginRouter {
   async handler(httpRequest) {
     try {
       if (!httpRequest.body) throw new Error();
-      this.requestBodyValidator.validate(httpRequest.body);
+
+      const errors = this.requestBodyValidator.validate(httpRequest.body);
+      if (errors) return HttpResponse.badRequest(new InvalidRequestError(errors));
 
       return true;
     } catch (error) {
@@ -22,7 +25,7 @@ const makeRequestValidatorSpy = () => {
   class RequestBodyValidatorSpy {
     validate(params) {
       this.params = params;
-      return {};
+      return this.response;
     }
   }
 
@@ -108,6 +111,24 @@ describe('Given the LoginRouter', () => {
 
       await sut.handler({ body: requestBody });
       expect(requestBodyValidatorSpy.params).toBe(requestBody);
+    });
+  });
+
+  describe('And the validate method from requestBodyValidator dependency returns any error', () => {
+    let response;
+    const errorMessage = 'any_error';
+
+    beforeAll(async () => {
+      const { sut, requestBodyValidatorSpy } = makeSut();
+      requestBodyValidatorSpy.response = errorMessage;
+      response = await sut.handler({ body: {} });
+    });
+
+    test('Then I expect it returns statusCode 400', () => {
+      expect(response.statusCode).toBe(400);
+    });
+    test('Then I expect it returns the body with a message indicating the error', () => {
+      expect(response.body).toBe(new InvalidRequestError(errorMessage).message);
     });
   });
 });
