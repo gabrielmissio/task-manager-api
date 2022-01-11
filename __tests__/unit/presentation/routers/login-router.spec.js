@@ -14,7 +14,7 @@ class LoginRouter {
       const errors = this.requestBodyValidator.validate(httpRequest.body);
       if (errors) return HttpResponse.badRequest(new InvalidRequestError(errors));
 
-      this.loginUseCase.handler();
+      this.loginUseCase.handler(httpRequest.body);
 
       return true;
     } catch (error) {
@@ -35,12 +35,28 @@ const makeRequestValidatorSpy = () => {
   return new RequestBodyValidatorSpy();
 };
 
+const makeLoginUseCaseSpy = () => {
+  class LoginUseCaseSpy {
+    async handler(params) {
+      this.params = params;
+      return {};
+    }
+  }
+
+  return new LoginUseCaseSpy();
+};
+
 const makeSut = () => {
   const requestBodyValidatorSpy = makeRequestValidatorSpy();
-  const sut = new LoginRouter({ requestBodyValidator: requestBodyValidatorSpy });
+  const loginUseCaseSpy = makeLoginUseCaseSpy();
+  const sut = new LoginRouter({
+    requestBodyValidator: requestBodyValidatorSpy,
+    loginUseCase: loginUseCaseSpy
+  });
   return {
     sut,
-    requestBodyValidatorSpy
+    requestBodyValidatorSpy,
+    loginUseCaseSpy
   };
 };
 
@@ -166,6 +182,16 @@ describe('Given the LoginRouter', () => {
 
     test('Then I expect it returns the body with Internal Server Error message', () => {
       expect(response.body).toBe('Internal Server Error');
+    });
+  });
+
+  describe('And the loginUseCase dependency was injected and has the handler method', () => {
+    test('Then I expect it calls the handler method from loginUseCase dependency with the expected params', async () => {
+      const { sut, loginUseCaseSpy } = makeSut();
+      const requestBody = 'any_params';
+
+      await sut.handler({ body: requestBody });
+      expect(loginUseCaseSpy.params).toBe(requestBody);
     });
   });
 });
