@@ -12,6 +12,7 @@ class LoginRouter {
 
       return true;
     } catch (error) {
+      console.error(error);
       return HttpResponse.exceptionHandler(error);
     }
   }
@@ -71,6 +72,22 @@ describe('Given the LoginRouter', () => {
     let response;
     beforeAll(async () => {
       const sut = new LoginRouter();
+      response = await sut.handler({ body: {} });
+    });
+
+    test('Then I expect it returns statusCode 500', () => {
+      expect(response.statusCode).toBe(500);
+    });
+
+    test('Then I expect it returns the body with Internal Server Error message', () => {
+      expect(response.body).toBe('Internal Server Error');
+    });
+  });
+
+  describe('And the requestBodyValidator dependency has no validate method', () => {
+    let response;
+    beforeAll(async () => {
+      const sut = new LoginRouter({ requestBodyValidator: {} });
       response = await sut.handler({ body: {} });
     });
 
