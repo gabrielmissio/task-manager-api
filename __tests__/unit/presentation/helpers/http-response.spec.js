@@ -43,7 +43,7 @@ describe('Given the HttpResponse', () => {
   describe('And the exceptionHandler method is called', () => {
     describe('And statusCode and error message are provided', () => {
       let response;
-      const error = { message: 'any error message', statusCode: 666 };
+      const error = { description: 'any error message', statusCode: 666 };
       beforeAll(() => {
         const { sut } = makeSut();
         response = sut.exceptionHandler(error);
@@ -52,7 +52,7 @@ describe('Given the HttpResponse', () => {
         expect(response.statusCode).toBe(666);
       });
       test('Then I expect it returns the body with the provided error message', () => {
-        expect(response.body).toBe(error.message);
+        expect(response.body).toBe(error.description);
       });
     });
 

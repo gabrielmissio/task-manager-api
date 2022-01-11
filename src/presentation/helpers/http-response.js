@@ -16,7 +16,7 @@ class HttpResponse {
   static exceptionHandler(error) {
     return {
       statusCode: error.statusCode || 500,
-      body: error.message || 'Internal Server Error'
+      body: error.description || 'Internal Server Error'
     };
   }
 }
