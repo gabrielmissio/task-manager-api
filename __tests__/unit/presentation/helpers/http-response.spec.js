@@ -1,5 +1,5 @@
 const { HttpResponse } = require('../../../../src/presentation/helpers');
-const { InternalServerError } = require('../../../../src/presentation/errors');
+const { InternalServerError, UnauthorizedError } = require('../../../../src/presentation/errors');
 
 const makeSut = () => {
   const sut = HttpResponse;
@@ -41,6 +41,21 @@ describe('Given the HttpResponse', () => {
     });
   });
 
+  describe('And the unauthorized method is called', () => {
+    let response;
+    beforeAll(() => {
+      const { sut } = makeSut();
+      response = sut.unauthorized();
+    });
+
+    test('Then I expect it returns statusCode 401', () => {
+      expect(response.statusCode).toBe(401);
+    });
+    test('Then I expect it returns the body with the UnauthorizedError message', () => {
+      expect(response.body).toBe(new UnauthorizedError().message);
+    });
+  });
+
   describe('And the exceptionHandler method is called', () => {
     describe('And statusCode and error message are provided', () => {
       let response;
@@ -66,7 +81,7 @@ describe('Given the HttpResponse', () => {
       test('Then I expect it returns statusCode 500', () => {
         expect(response.statusCode).toBe(500);
       });
-      test('Then I expect it returns the body with Internal Server Error message', () => {
+      test('Then I expect it returns the body with InternalServerError message', () => {
         expect(response.body).toBe(new InternalServerError().message);
       });
     });
