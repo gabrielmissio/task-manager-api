@@ -2,8 +2,9 @@ const { HttpResponse } = require('../../../../src/presentation/helpers');
 const { InvalidRequestError } = require('../../../../src/presentation/errors');
 
 class LoginRouter {
-  constructor({ requestBodyValidator } = {}) {
+  constructor({ requestBodyValidator, loginUseCase } = {}) {
     this.requestBodyValidator = requestBodyValidator;
+    this.loginUseCase = loginUseCase;
   }
 
   async handler(httpRequest) {
@@ -12,6 +13,8 @@ class LoginRouter {
 
       const errors = this.requestBodyValidator.validate(httpRequest.body);
       if (errors) return HttpResponse.badRequest(new InvalidRequestError(errors));
+
+      this.loginUseCase.handler();
 
       return true;
     } catch (error) {
@@ -129,6 +132,23 @@ describe('Given the LoginRouter', () => {
     });
     test('Then I expect it returns the body with a message indicating the error', () => {
       expect(response.body).toBe(new InvalidRequestError(errorMessage).message);
+    });
+  });
+
+  describe('And the loginUseCase dependency was not injected', () => {
+    let response;
+    beforeAll(async () => {
+      const { requestBodyValidatorSpy } = makeSut();
+      const sut = new LoginRouter({ requestBodyValidator: requestBodyValidatorSpy });
+      response = await sut.handler({ body: {} });
+    });
+
+    test('Then I expect it returns statusCode 500', () => {
+      expect(response.statusCode).toBe(500);
+    });
+
+    test('Then I expect it returns the body with Internal Server Error message', () => {
+      expect(response.body).toBe('Internal Server Error');
     });
   });
 });
