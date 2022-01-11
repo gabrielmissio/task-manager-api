@@ -1,4 +1,5 @@
 const { HttpResponse } = require('../../../../src/presentation/helpers');
+const { InternalServerError } = require('../../../../src/presentation/errors');
 
 const makeSut = () => {
   const sut = HttpResponse;
@@ -66,7 +67,7 @@ describe('Given the HttpResponse', () => {
         expect(response.statusCode).toBe(500);
       });
       test('Then I expect it returns the body with Internal Server Error message', () => {
-        expect(response.body).toBe('Internal Server Error');
+        expect(response.body).toBe(new InternalServerError().message);
       });
     });
   });
