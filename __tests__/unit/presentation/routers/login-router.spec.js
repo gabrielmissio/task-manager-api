@@ -20,7 +20,8 @@ class LoginRouter {
 
 const makeRequestValidatorSpy = () => {
   class RequestBodyValidatorSpy {
-    validate() {
+    validate(params) {
+      this.params = params;
       return {};
     }
   }
@@ -97,6 +98,16 @@ describe('Given the LoginRouter', () => {
 
     test('Then I expect it returns the body with Internal Server Error message', () => {
       expect(response.body).toBe('Internal Server Error');
+    });
+  });
+
+  describe('And the requestBodyValidator dependency was injected and has the validate method', () => {
+    test('Then I expect it calls the validate method from requestBodyValidator dependency with the expected params', async () => {
+      const { sut, requestBodyValidatorSpy } = makeSut();
+      const requestBody = 'any_params';
+
+      await sut.handler({ body: requestBody });
+      expect(requestBodyValidatorSpy.params).toBe(requestBody);
     });
   });
 });
