@@ -151,4 +151,21 @@ describe('Given the LoginRouter', () => {
       expect(response.body).toBe('Internal Server Error');
     });
   });
+
+  describe('And the loginUseCase dependency has no handler method', () => {
+    let response;
+    beforeAll(async () => {
+      const { requestBodyValidatorSpy } = makeSut();
+      const sut = new LoginRouter({ requestBodyValidator: requestBodyValidatorSpy, loginUseCase: {} });
+      response = await sut.handler({ body: {} });
+    });
+
+    test('Then I expect it returns statusCode 500', () => {
+      expect(response.statusCode).toBe(500);
+    });
+
+    test('Then I expect it returns the body with Internal Server Error message', () => {
+      expect(response.body).toBe('Internal Server Error');
+    });
+  });
 });
