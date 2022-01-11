@@ -1,5 +1,5 @@
 const { HttpResponse } = require('../../../../src/presentation/helpers');
-const { InvalidRequestError } = require('../../../../src/presentation/errors');
+const { InvalidRequestError, InternalServerError } = require('../../../../src/presentation/errors');
 
 class LoginRouter {
   constructor({ requestBodyValidator, loginUseCase } = {}) {
@@ -14,7 +14,8 @@ class LoginRouter {
       const errors = this.requestBodyValidator.validate(httpRequest.body);
       if (errors) return HttpResponse.badRequest(new InvalidRequestError(errors));
 
-      this.loginUseCase.handler(httpRequest.body);
+      const response = await this.loginUseCase.handler(httpRequest.body);
+      if (!response) return 0;
 
       return true;
     } catch (error) {
@@ -72,7 +73,7 @@ describe('Given the LoginRouter', () => {
       expect(response.statusCode).toBe(500);
     });
     test('Then I expect it returns the body with Internal Server Error message', () => {
-      expect(response.body).toBe('Internal Server Error');
+      expect(response.body).toBe(new InternalServerError().message);
     });
   });
 
@@ -87,7 +88,7 @@ describe('Given the LoginRouter', () => {
       expect(response.statusCode).toBe(500);
     });
     test('Then I expect it returns the body with Internal Server Error message', () => {
-      expect(response.body).toBe('Internal Server Error');
+      expect(response.body).toBe(new InternalServerError().message);
     });
   });
 
@@ -103,7 +104,7 @@ describe('Given the LoginRouter', () => {
     });
 
     test('Then I expect it returns the body with Internal Server Error message', () => {
-      expect(response.body).toBe('Internal Server Error');
+      expect(response.body).toBe(new InternalServerError().message);
     });
   });
 
@@ -119,7 +120,7 @@ describe('Given the LoginRouter', () => {
     });
 
     test('Then I expect it returns the body with Internal Server Error message', () => {
-      expect(response.body).toBe('Internal Server Error');
+      expect(response.body).toBe(new InternalServerError().message);
     });
   });
 
@@ -164,7 +165,7 @@ describe('Given the LoginRouter', () => {
     });
 
     test('Then I expect it returns the body with Internal Server Error message', () => {
-      expect(response.body).toBe('Internal Server Error');
+      expect(response.body).toBe(new InternalServerError().message);
     });
   });
 
@@ -181,7 +182,7 @@ describe('Given the LoginRouter', () => {
     });
 
     test('Then I expect it returns the body with Internal Server Error message', () => {
-      expect(response.body).toBe('Internal Server Error');
+      expect(response.body).toBe(new InternalServerError().message);
     });
   });
 
