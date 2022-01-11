@@ -11,7 +11,7 @@ describe('Given the HttpResponse', () => {
   describe('And the ok method is called', () => {
     let response;
     const data = { foo: 'bar' };
-    beforeAll(async () => {
+    beforeAll(() => {
       const { sut } = makeSut();
       response = sut.ok(data);
     });
@@ -27,7 +27,7 @@ describe('Given the HttpResponse', () => {
   describe('And the badRequest method is called', () => {
     let response;
     const error = { message: 'any error message' };
-    beforeAll(async () => {
+    beforeAll(() => {
       const { sut } = makeSut();
       response = sut.badRequest(error);
     });
@@ -44,7 +44,7 @@ describe('Given the HttpResponse', () => {
     describe('And statusCode and error message are provided', () => {
       let response;
       const error = { message: 'any error message', statusCode: 666 };
-      beforeAll(async () => {
+      beforeAll(() => {
         const { sut } = makeSut();
         response = sut.exceptionHandler(error);
       });
@@ -58,7 +58,7 @@ describe('Given the HttpResponse', () => {
 
     describe('And no statusCode and error message are provided', () => {
       let response;
-      beforeAll(async () => {
+      beforeAll(() => {
         const { sut } = makeSut();
         response = sut.exceptionHandler({});
       });
