@@ -5,6 +5,13 @@ class HttpResponse {
       body: data
     };
   }
+
+  static badRequest(error) {
+    return {
+      statusCode: 400,
+      body: error.message
+    };
+  }
 }
 
 const makeSut = () => {
@@ -26,8 +33,24 @@ describe('Given the HttpResponse', () => {
     test('Then I expect it returns statusCode 200', () => {
       expect(response.statusCode).toBe(200);
     });
-    test('Then I expect it returns the body with the expected value', () => {
+    test('Then I expect it returns the body with the provided value', () => {
       expect(response.body).toBe(data);
+    });
+  });
+
+  describe('And the badRequest method is called', () => {
+    let response;
+    const error = new Error('any error message');
+    beforeAll(async () => {
+      const { sut } = makeSut();
+      response = sut.badRequest(error);
+    });
+
+    test('Then I expect it returns statusCode 400', () => {
+      expect(response.statusCode).toBe(400);
+    });
+    test('Then I expect it returns the body with the provided error message', () => {
+      expect(response.body).toBe(error.message);
     });
   });
 });
