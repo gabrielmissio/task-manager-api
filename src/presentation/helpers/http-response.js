@@ -22,6 +22,13 @@ class HttpResponse {
     };
   }
 
+  static internalServerError() {
+    return {
+      statusCode: 500,
+      body: new InternalServerError().message
+    };
+  }
+
   static exceptionHandler(error) {
     return {
       statusCode: error.statusCode || 500,

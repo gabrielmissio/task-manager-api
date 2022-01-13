@@ -56,6 +56,21 @@ describe('Given the HttpResponse', () => {
     });
   });
 
+  describe('And the internalServerError method is called', () => {
+    let response;
+    beforeAll(() => {
+      const { sut } = makeSut();
+      response = sut.internalServerError();
+    });
+
+    test('Then I expect it returns statusCode 500', () => {
+      expect(response.statusCode).toBe(500);
+    });
+    test('Then I expect it returns the body with the InternalServerError message', () => {
+      expect(response.body).toBe(new InternalServerError().message);
+    });
+  });
+
   describe('And the exceptionHandler method is called', () => {
     describe('And statusCode and error message are provided', () => {
       let response;
