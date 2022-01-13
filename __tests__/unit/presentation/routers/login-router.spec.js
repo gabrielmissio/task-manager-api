@@ -9,7 +9,7 @@ class LoginRouter {
 
   async handler(httpRequest) {
     try {
-      if (!httpRequest.body) throw new Error();
+      if (!httpRequest.body) return HttpResponse.internalServerError();
 
       const errors = this.requestBodyValidator.validate(httpRequest.body);
       if (errors) return HttpResponse.badRequest(new InvalidRequestError(errors));
@@ -17,7 +17,7 @@ class LoginRouter {
       const authenticationModel = await this.loginUseCase.handler(httpRequest.body);
       if (!authenticationModel) return HttpResponse.unauthorized();
 
-      return authenticationModel;
+      return HttpResponse.ok(authenticationModel);
     } catch (error) {
       console.error(error);
       return HttpResponse.exceptionHandler(error);
@@ -211,6 +211,22 @@ describe('Given the LoginRouter', () => {
     });
     test('Then I expect it returns the body with UnauthorizedError message', () => {
       expect(response.body).toBe(new UnauthorizedError().message);
+    });
+  });
+
+  describe('And the handler method from loginUseCase dependency returns a authenticationModel', () => {
+    let response;
+    let loginUseCaseResponse;
+    beforeAll(async () => {
+      const { sut, loginUseCaseSpy } = makeSut();
+      response = await sut.handler({ body: {} });
+      loginUseCaseResponse = loginUseCaseSpy.response;
+    });
+    test('Then I expect it returns statusCode 200', () => {
+      expect(response.statusCode).toBe(200);
+    });
+    test('Then I expect it returns the body with the authenticationModel returned by handler method of the loginUseCase dependency', () => {
+      expect(response.body).toBe(loginUseCaseResponse);
     });
   });
 });
