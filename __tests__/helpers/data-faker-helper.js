@@ -7,6 +7,11 @@ class DataFakerHelper {
     const { length, pool, alpha, casing, symbols } = config;
     return dataFaker.string({ length, pool, alpha, casing, symbols });
   }
+
+  static getSentence(config) {
+    const { words } = config;
+    return dataFaker.sentence({ words });
+  }
 }
 
 module.exports = DataFakerHelper;
