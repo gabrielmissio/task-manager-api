@@ -1,5 +1,5 @@
 const { HttpResponse } = require('../../../../src/presentation/helpers');
-const { InvalidRequestError, InternalServerError } = require('../../../../src/presentation/errors');
+const { InvalidRequestError, InternalServerError, UnauthorizedError } = require('../../../../src/presentation/errors');
 
 class LoginRouter {
   constructor({ requestBodyValidator, loginUseCase } = {}) {
@@ -14,10 +14,10 @@ class LoginRouter {
       const errors = this.requestBodyValidator.validate(httpRequest.body);
       if (errors) return HttpResponse.badRequest(new InvalidRequestError(errors));
 
-      const response = await this.loginUseCase.handler(httpRequest.body);
-      if (!response) return 0;
+      const authenticationModel = await this.loginUseCase.handler(httpRequest.body);
+      if (!authenticationModel) return HttpResponse.unauthorized();
 
-      return true;
+      return authenticationModel;
     } catch (error) {
       console.error(error);
       return HttpResponse.exceptionHandler(error);
@@ -40,7 +40,7 @@ const makeLoginUseCaseSpy = () => {
   class LoginUseCaseSpy {
     async handler(params) {
       this.params = params;
-      return {};
+      return this.response;
     }
   }
 
@@ -50,6 +50,8 @@ const makeLoginUseCaseSpy = () => {
 const makeSut = () => {
   const requestBodyValidatorSpy = makeRequestValidatorSpy();
   const loginUseCaseSpy = makeLoginUseCaseSpy();
+  requestBodyValidatorSpy.response = null;
+  loginUseCaseSpy.response = 'any authentication model';
   const sut = new LoginRouter({
     requestBodyValidator: requestBodyValidatorSpy,
     loginUseCase: loginUseCaseSpy
@@ -72,7 +74,7 @@ describe('Given the LoginRouter', () => {
     test('Then I expect it returns statusCode 500', () => {
       expect(response.statusCode).toBe(500);
     });
-    test('Then I expect it returns the body with Internal Server Error message', () => {
+    test('Then I expect it returns the body with InternalServerError message', () => {
       expect(response.body).toBe(new InternalServerError().message);
     });
   });
@@ -87,7 +89,7 @@ describe('Given the LoginRouter', () => {
     test('Then I expect it returns statusCode 500', () => {
       expect(response.statusCode).toBe(500);
     });
-    test('Then I expect it returns the body with Internal Server Error message', () => {
+    test('Then I expect it returns the body with InternalServerError message', () => {
       expect(response.body).toBe(new InternalServerError().message);
     });
   });
@@ -103,7 +105,7 @@ describe('Given the LoginRouter', () => {
       expect(response.statusCode).toBe(500);
     });
 
-    test('Then I expect it returns the body with Internal Server Error message', () => {
+    test('Then I expect it returns the body with InternalServerError message', () => {
       expect(response.body).toBe(new InternalServerError().message);
     });
   });
@@ -119,7 +121,7 @@ describe('Given the LoginRouter', () => {
       expect(response.statusCode).toBe(500);
     });
 
-    test('Then I expect it returns the body with Internal Server Error message', () => {
+    test('Then I expect it returns the body with InternalServerError message', () => {
       expect(response.body).toBe(new InternalServerError().message);
     });
   });
@@ -164,7 +166,7 @@ describe('Given the LoginRouter', () => {
       expect(response.statusCode).toBe(500);
     });
 
-    test('Then I expect it returns the body with Internal Server Error message', () => {
+    test('Then I expect it returns the body with InternalServerError message', () => {
       expect(response.body).toBe(new InternalServerError().message);
     });
   });
@@ -181,7 +183,7 @@ describe('Given the LoginRouter', () => {
       expect(response.statusCode).toBe(500);
     });
 
-    test('Then I expect it returns the body with Internal Server Error message', () => {
+    test('Then I expect it returns the body with InternalServerError message', () => {
       expect(response.body).toBe(new InternalServerError().message);
     });
   });
@@ -193,6 +195,22 @@ describe('Given the LoginRouter', () => {
 
       await sut.handler({ body: requestBody });
       expect(loginUseCaseSpy.params).toBe(requestBody);
+    });
+  });
+
+  describe('And the handler method from loginUseCase dependency does not return any authenticationModel', () => {
+    let response;
+    beforeAll(async () => {
+      const { sut, loginUseCaseSpy } = makeSut();
+      loginUseCaseSpy.response = null;
+      response = await sut.handler({ body: {} });
+    });
+
+    test('Then I expect it returns statusCode 401', () => {
+      expect(response.statusCode).toBe(401);
+    });
+    test('Then I expect it returns the body with UnauthorizedError message', () => {
+      expect(response.body).toBe(new UnauthorizedError().message);
     });
   });
 });
