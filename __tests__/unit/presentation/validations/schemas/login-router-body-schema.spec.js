@@ -1,11 +1,12 @@
 const Joi = require('joi');
 
 const {
-  Commons: { emailValidation }
+  Commons: { emailValidation, passwordValidation }
 } = require('../../../../../src/presentation/validations/helpers');
 
 const LoginRouterBodySchema = Joi.object({
-  email: emailValidation.required()
+  email: emailValidation.required(),
+  password: passwordValidation.required()
 });
 
 const { DataFakerHelper } = require('../../../../helpers');
@@ -47,6 +48,19 @@ describe('Given the LoginRouterBodySchema', () => {
       const response = sut.validate(params);
 
       expect(response.error.message).toBe('"email" must be a valid email');
+    });
+  });
+
+  describe('And no password is provided', () => {
+    test('Then I expect it returns "password" is required in the error message', () => {
+      const { sut } = makeSut();
+      const params = {
+        email: DataFakerHelper.getEmail()
+      };
+
+      const response = sut.validate(params);
+
+      expect(response.error.message).toBe('"password" is required');
     });
   });
 });
