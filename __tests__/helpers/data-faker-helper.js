@@ -15,6 +15,10 @@ class DataFakerHelper {
     return dataFaker.integer({ min, max });
   }
 
+  static getEmail({ domain } = {}) {
+    return dataFaker.email({ domain });
+  }
+
   static getObject({ length } = { length: 1 }) {
     const newObject = {};
     const pool = 'abcdefghijklmnopqrstuvwxyz';
