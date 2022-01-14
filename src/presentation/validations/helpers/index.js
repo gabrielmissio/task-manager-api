@@ -1,5 +1,5 @@
-const commons = require('./commons');
+const Commons = require('./commons');
 
 module.exports = {
-  commons
+  Commons
 };
