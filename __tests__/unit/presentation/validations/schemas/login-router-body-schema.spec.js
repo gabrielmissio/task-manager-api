@@ -79,4 +79,18 @@ describe('Given the LoginRouterBodySchema', () => {
       expect(response.error).toBeTruthy();
     });
   });
+
+  describe('And valid parameters are provided', () => {
+    test('Then I expect it returns the provided parameters in the "value" property', () => {
+      const { sut } = makeSut();
+      const params = {
+        email: DataFakerHelper.getEmail(),
+        password: DataFakerHelper.getPassword()
+      };
+
+      const response = sut.validate(params);
+
+      expect(response.value).toEqual(params);
+    });
+  });
 });
