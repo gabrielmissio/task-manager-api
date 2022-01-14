@@ -1,5 +1,7 @@
 const Chance = require('chance');
 
+const PasswordGenerator = require('./password-generator');
+
 const dataFaker = new Chance();
 
 class DataFakerHelper {
@@ -17,6 +19,12 @@ class DataFakerHelper {
 
   static getEmail({ domain } = {}) {
     return dataFaker.email({ domain });
+  }
+
+  static getPassword(
+    { numbers, upperCase, lowerCase, specials } = { numbers: 2, upperCase: 2, lowerCase: 3, specials: 1 }
+  ) {
+    return PasswordGenerator.generate({ numbers, upperCase, lowerCase, specials });
   }
 
   static getObject({ length } = { length: 1 }) {
