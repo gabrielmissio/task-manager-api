@@ -1,14 +1,4 @@
-const Joi = require('joi');
-
-const {
-  Commons: { emailValidation, passwordValidation }
-} = require('../../../../../src/presentation/validations/helpers');
-
-const LoginRouterBodySchema = Joi.object({
-  email: emailValidation.required(),
-  password: passwordValidation.required()
-});
-
+const { LoginRouterBodySchema } = require('../../../../../src/presentation/validations/schemas');
 const { DataFakerHelper } = require('../../../../helpers');
 const {
   ErrorMessagesEnum: { INVALID_PASSWORD, PASSWORD_RULES }
