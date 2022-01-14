@@ -92,5 +92,17 @@ describe('Given the LoginRouterBodySchema', () => {
 
       expect(response.value).toEqual(params);
     });
+
+    test('Then I expect it returns no "error" property', () => {
+      const { sut } = makeSut();
+      const params = {
+        email: DataFakerHelper.getEmail(),
+        password: DataFakerHelper.getPassword()
+      };
+
+      const response = sut.validate(params);
+
+      expect(response.error).toBeFalsy();
+    });
   });
 });
