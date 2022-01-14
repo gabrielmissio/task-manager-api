@@ -1,5 +1,6 @@
 const { HttpResponse } = require('../../../../src/presentation/helpers');
 const { InternalServerError, UnauthorizedError } = require('../../../../src/presentation/errors');
+const { DataFakerHelper } = require('../../../helpers');
 
 const makeSut = () => {
   const sut = HttpResponse;
@@ -11,7 +12,7 @@ const makeSut = () => {
 describe('Given the HttpResponse', () => {
   describe('And the ok method is called', () => {
     let response;
-    const data = { foo: 'bar' };
+    const data = DataFakerHelper.getObject();
     beforeAll(() => {
       const { sut } = makeSut();
       response = sut.ok(data);
@@ -27,7 +28,7 @@ describe('Given the HttpResponse', () => {
 
   describe('And the badRequest method is called', () => {
     let response;
-    const error = { message: 'any error message' };
+    const error = { message: DataFakerHelper.getSentence({ words: 3 }) };
     beforeAll(() => {
       const { sut } = makeSut();
       response = sut.badRequest(error);
@@ -74,13 +75,16 @@ describe('Given the HttpResponse', () => {
   describe('And the exceptionHandler method is called', () => {
     describe('And statusCode and error message are provided', () => {
       let response;
-      const error = { description: 'any error message', statusCode: 666 };
+      const error = {
+        description: DataFakerHelper.getSentence({ words: 3 }),
+        statusCode: DataFakerHelper.getInteger({ min: 400, max: 500 })
+      };
       beforeAll(() => {
         const { sut } = makeSut();
         response = sut.exceptionHandler(error);
       });
       test('Them I expect it returns the provided statusCode', () => {
-        expect(response.statusCode).toBe(666);
+        expect(response.statusCode).toBe(error.statusCode);
       });
       test('Then I expect it returns the body with the provided error message', () => {
         expect(response.body).toBe(error.description);
