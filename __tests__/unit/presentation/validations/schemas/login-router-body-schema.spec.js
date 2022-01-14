@@ -8,6 +8,8 @@ const LoginRouterBodySchema = Joi.object({
   email: emailValidation.required()
 });
 
+const { DataFakerHelper } = require('../../../../helpers');
+
 const makeSut = () => {
   const sut = LoginRouterBodySchema;
 
@@ -32,6 +34,19 @@ describe('Given the LoginRouterBodySchema', () => {
       const response = sut.validate({});
 
       expect(response.error.message).toBe('"email" is required');
+    });
+  });
+
+  describe('And an invalid email is provided', () => {
+    test('Then I expect it returns "email" must be a valid email in the error message', () => {
+      const { sut } = makeSut();
+      const params = {
+        email: DataFakerHelper.getString()
+      };
+
+      const response = sut.validate(params);
+
+      expect(response.error.message).toBe('"email" must be a valid email');
     });
   });
 });
