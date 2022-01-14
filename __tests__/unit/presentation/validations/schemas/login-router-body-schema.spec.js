@@ -23,15 +23,6 @@ const makeSut = () => {
 };
 
 describe('Given the LoginRouterBodySchema', () => {
-  describe('And no parameters are provided', () => {
-    test('Then I expect it returns an object with a "value" key with undefined value', () => {
-      const { sut } = makeSut();
-      const response = sut.validate();
-
-      expect(response.value).toBeUndefined();
-    });
-  });
-
   describe('And no email is provided', () => {
     test('Then I expect it returns "email" is required in the error message', () => {
       const { sut } = makeSut();
@@ -78,6 +69,24 @@ describe('Given the LoginRouterBodySchema', () => {
       const response = sut.validate(params);
 
       expect(response.error.message).toBe(`${INVALID_PASSWORD}. ${PASSWORD_RULES}`);
+    });
+  });
+
+  describe('And no parameters are provided', () => {
+    test('Then I expect it returns an object with a "value" key with undefined value', () => {
+      const { sut } = makeSut();
+      const response = sut.validate();
+
+      expect(response.value).toBeUndefined();
+    });
+  });
+
+  describe('And an empty object is provided', () => {
+    test('Then I expect it returns an object with a "error" property', () => {
+      const { sut } = makeSut();
+      const response = sut.validate({});
+
+      expect(response.error).toBeTruthy();
     });
   });
 });
