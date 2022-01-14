@@ -10,6 +10,9 @@ const LoginRouterBodySchema = Joi.object({
 });
 
 const { DataFakerHelper } = require('../../../../helpers');
+const {
+  ErrorMessagesEnum: { INVALID_PASSWORD, PASSWORD_RULES }
+} = require('../../../../../src/utils/enums');
 
 const makeSut = () => {
   const sut = LoginRouterBodySchema;
@@ -61,6 +64,20 @@ describe('Given the LoginRouterBodySchema', () => {
       const response = sut.validate(params);
 
       expect(response.error.message).toBe('"password" is required');
+    });
+  });
+
+  describe('And an invalid password is provided', () => {
+    test('Then I expect it returns INVALID_PASSWORD and PASSWORD_RULES in the error message', () => {
+      const { sut } = makeSut();
+      const params = {
+        email: DataFakerHelper.getEmail(),
+        password: DataFakerHelper.getString({ length: 7 })
+      };
+
+      const response = sut.validate(params);
+
+      expect(response.error.message).toBe(`${INVALID_PASSWORD}. ${PASSWORD_RULES}`);
     });
   });
 });
