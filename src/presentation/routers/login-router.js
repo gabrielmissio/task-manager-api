@@ -1,5 +1,6 @@
 const { HttpResponse } = require('../helpers');
 const { InvalidRequestError } = require('../errors');
+const { MissingParamError } = require('../../utils/errors');
 
 class LoginRouter {
   constructor({ requestBodyValidator, loginUseCase } = {}) {
@@ -9,7 +10,7 @@ class LoginRouter {
 
   async handler(httpRequest) {
     try {
-      if (!httpRequest.body) return HttpResponse.internalServerError();
+      if (!httpRequest.body) throw new MissingParamError('body');
 
       const errors = this.requestBodyValidator.validate(httpRequest.body);
       if (errors) return HttpResponse.badRequest(new InvalidRequestError(errors));
