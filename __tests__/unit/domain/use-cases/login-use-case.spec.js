@@ -1,4 +1,5 @@
 const { MissingParamError } = require('../../../../src/utils/errors');
+const { DataFakerHelper } = require('../../../helpers');
 
 class LoginUseCase {
   constructor({ userRepository } = {}) {
@@ -9,7 +10,7 @@ class LoginUseCase {
     if (!email) throw new MissingParamError('email');
     if (!password) throw new MissingParamError('password');
 
-    this.userRepository.getByEmail();
+    this.userRepository.getByEmail({ email });
   }
 }
 
@@ -79,6 +80,20 @@ describe('Given the LoginUseCase', () => {
       const promise = sut.handler(params);
 
       await expect(promise).rejects.toThrow(new Error('this.userRepository.getByEmail is not a function'));
+    });
+  });
+
+  describe('And the userRepository dependency is injected correctly', () => {
+    test('Then I expect it calls the getByEmail method with the expected value', async () => {
+      const { sut, userRepositorySpy } = makeSut();
+      const params = {
+        email: DataFakerHelper.getEmail(),
+        password: 'any_password'
+      };
+
+      await sut.handler(params);
+
+      expect(userRepositorySpy.email).toBe(params.email);
     });
   });
 });
