@@ -67,4 +67,18 @@ describe('Given the LoginUseCase', () => {
       await expect(promise).rejects.toThrow(new Error("Cannot read property 'getByEmail' of undefined"));
     });
   });
+
+  describe('And the userRepository dependency does not have getByEmail method', () => {
+    test('Then I expect it throws an error', async () => {
+      const sut = new LoginUseCase({ userRepository: {} });
+      const params = {
+        email: 'any_email',
+        password: 'any_password'
+      };
+
+      const promise = sut.handler(params);
+
+      await expect(promise).rejects.toThrow(new Error('this.userRepository.getByEmail is not a function'));
+    });
+  });
 });
