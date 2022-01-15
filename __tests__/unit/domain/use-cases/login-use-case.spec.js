@@ -10,7 +10,10 @@ class LoginUseCase {
     if (!email) throw new MissingParamError('email');
     if (!password) throw new MissingParamError('password');
 
-    this.userRepository.getByEmail({ email });
+    const user = await this.userRepository.getByEmail({ email });
+    if (!user) return null;
+
+    return user;
   }
 }
 
@@ -27,6 +30,7 @@ const makeUserRepositorySpy = () => {
 
 const makeSut = () => {
   const userRepositorySpy = makeUserRepositorySpy();
+  userRepositorySpy.response = true;
   const sut = new LoginUseCase({ userRepository: userRepositorySpy });
 
   return {
@@ -94,6 +98,21 @@ describe('Given the LoginUseCase', () => {
       await sut.handler(params);
 
       expect(userRepositorySpy.email).toBe(params.email);
+    });
+  });
+
+  describe('And the getByEmail method does not return any user', () => {
+    test('Then I expect it returns null', async () => {
+      const { sut, userRepositorySpy } = makeSut();
+      userRepositorySpy.response = null;
+      const params = {
+        email: DataFakerHelper.getEmail(),
+        password: 'any_password'
+      };
+
+      const response = await sut.handler(params);
+
+      expect(response).toBeNull();
     });
   });
 });
