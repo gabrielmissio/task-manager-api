@@ -1,17 +1,36 @@
 const { MissingParamError } = require('../../../../src/utils/errors');
 
 class LoginUseCase {
-  async handler({ email }) {
+  constructor({ userRepository } = {}) {
+    this.userRepository = userRepository;
+  }
+
+  async handler({ email, password }) {
     if (!email) throw new MissingParamError('email');
-    throw new MissingParamError('password');
+    if (!password) throw new MissingParamError('password');
+
+    this.userRepository.getByEmail();
   }
 }
 
+const makeUserRepositorySpy = () => {
+  class UserRepositorySpy {
+    async getByEmail({ email }) {
+      this.email = email;
+      return this.response;
+    }
+  }
+
+  return new UserRepositorySpy();
+};
+
 const makeSut = () => {
-  const sut = new LoginUseCase();
+  const userRepositorySpy = makeUserRepositorySpy();
+  const sut = new LoginUseCase({ userRepository: userRepositorySpy });
 
   return {
-    sut
+    sut,
+    userRepositorySpy
   };
 };
 
@@ -28,10 +47,24 @@ describe('Given the LoginUseCase', () => {
   describe('And no password is provided', () => {
     test('Then I expect it throws a MissingParamError', async () => {
       const { sut } = makeSut();
-      const params = { email: 'any' };
+      const params = { email: 'any_email' };
       const promise = sut.handler(params);
 
       await expect(promise).rejects.toThrow(new MissingParamError('password'));
+    });
+  });
+
+  describe('And the userRepository dependency is not injected', () => {
+    test('Then I expect it throws an error', async () => {
+      const sut = new LoginUseCase();
+      const params = {
+        email: 'any_email',
+        password: 'any_password'
+      };
+
+      const promise = sut.handler(params);
+
+      await expect(promise).rejects.toThrow(new Error("Cannot read property 'getByEmail' of undefined"));
     });
   });
 });
