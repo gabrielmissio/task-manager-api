@@ -2,8 +2,9 @@ const { MissingParamError } = require('../../../../src/utils/errors');
 const { DataFakerHelper } = require('../../../helpers');
 
 class LoginUseCase {
-  constructor({ userRepository } = {}) {
+  constructor({ userRepository, encrypter } = {}) {
     this.userRepository = userRepository;
+    this.encrypter = encrypter;
   }
 
   async handler({ email, password }) {
@@ -11,7 +12,8 @@ class LoginUseCase {
     if (!password) throw new MissingParamError('password');
 
     const user = await this.userRepository.getByEmail({ email });
-    if (!user) return null;
+    const isValid = user && (await this.encrypter.compare({ value: password, hash: user.password }));
+    if (!isValid) return null;
 
     return user;
   }
@@ -28,10 +30,28 @@ const makeUserRepositorySpy = () => {
   return new UserRepositorySpy();
 };
 
+const makeEncrypterSpy = () => {
+  class EncrypterSpy {
+    async compare({ value, hash }) {
+      this.params = { value, hash };
+      return this.response;
+    }
+  }
+
+  return new EncrypterSpy();
+};
+
 const makeSut = () => {
   const userRepositorySpy = makeUserRepositorySpy();
   userRepositorySpy.response = true;
-  const sut = new LoginUseCase({ userRepository: userRepositorySpy });
+
+  const encrypterSpy = makeEncrypterSpy();
+  encrypterSpy.response = true;
+
+  const sut = new LoginUseCase({
+    userRepository: userRepositorySpy,
+    encrypter: encrypterSpy
+  });
 
   return {
     sut,
@@ -113,6 +133,21 @@ describe('Given the LoginUseCase', () => {
       const response = await sut.handler(params);
 
       expect(response).toBeNull();
+    });
+  });
+
+  describe('And the encrypter dependency is not injected', () => {
+    test('Then I expect it throws an error', async () => {
+      const { userRepositorySpy } = makeSut();
+      const sut = new LoginUseCase({ userRepository: userRepositorySpy });
+      const params = {
+        email: DataFakerHelper.getEmail(),
+        password: DataFakerHelper.getPassword()
+      };
+
+      const promise = sut.handler(params);
+
+      await expect(promise).rejects.toThrow(new Error("Cannot read property 'compare' of undefined"));
     });
   });
 });
