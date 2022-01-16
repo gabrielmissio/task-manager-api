@@ -76,6 +76,17 @@ const makeTokenGeneratorSpy = () => {
   return new TokenGeneratorSpy();
 };
 
+const makeTokenGeneratorSpyWithError = () => {
+  class TokenGeneratorSpyWithError {
+    async generate() {
+      this.errorMessage = DataFakerHelper.getSentence({ words: 3 });
+      throw new Error(this.errorMessage);
+    }
+  }
+
+  return new TokenGeneratorSpyWithError();
+};
+
 const makeSut = () => {
   const userRepositorySpy = makeUserRepositorySpy();
   userRepositorySpy.response = {
@@ -170,7 +181,7 @@ describe('Given the LoginUseCase', () => {
       const userRepositorySpyWithError = makeUserRepositorySpyWithError();
       const sut = new LoginUseCase({ userRepository: userRepositorySpyWithError });
       const params = {
-        email: DataFakerHelper.getEmail(),
+        email: 'any_email',
         password: 'any_password'
       };
 
@@ -185,7 +196,7 @@ describe('Given the LoginUseCase', () => {
       const { sut, userRepositorySpy } = makeSut();
       userRepositorySpy.response = null;
       const params = {
-        email: DataFakerHelper.getEmail(),
+        email: 'any_email',
         password: 'any_password'
       };
 
@@ -200,8 +211,8 @@ describe('Given the LoginUseCase', () => {
       const { userRepositorySpy } = makeSut();
       const sut = new LoginUseCase({ userRepository: userRepositorySpy });
       const params = {
-        email: DataFakerHelper.getEmail(),
-        password: DataFakerHelper.getPassword()
+        email: 'any_email',
+        password: 'any_password'
       };
 
       const promise = sut.handler(params);
@@ -232,7 +243,7 @@ describe('Given the LoginUseCase', () => {
     test('Then I expect it calls the compare method with the expected values', async () => {
       const { sut, encrypterSpy, userRepositorySpy } = makeSut();
       const params = {
-        email: DataFakerHelper.getEmail(),
+        email: 'any_email',
         password: DataFakerHelper.getPassword()
       };
 
@@ -252,7 +263,7 @@ describe('Given the LoginUseCase', () => {
         encrypter: encrypterSpyWithError
       });
       const params = {
-        email: DataFakerHelper.getEmail(),
+        email: 'any_email',
         password: 'any_password'
       };
 
@@ -303,13 +314,33 @@ describe('Given the LoginUseCase', () => {
     test('Then I expect it calls the generate method with the expected values', async () => {
       const { sut, tokenGeneratorSpy, userRepositorySpy } = makeSut();
       const params = {
-        email: DataFakerHelper.getEmail(),
-        password: DataFakerHelper.getPassword()
+        email: 'any_email',
+        password: 'anyPassword'
       };
 
       await Promise.allSettled([sut.handler(params)]);
 
       expect(tokenGeneratorSpy.params).toBe(userRepositorySpy.response.id);
+    });
+  });
+
+  describe('And the tokenGenerator dependency throws an error', () => {
+    test('Then I expect it throws an error', async () => {
+      const { userRepositorySpy, encrypterSpy } = makeSut();
+      const tokenGeneratorSpyWithError = makeTokenGeneratorSpyWithError();
+      const sut = new LoginUseCase({
+        userRepository: userRepositorySpy,
+        encrypter: encrypterSpy,
+        tokenGenerator: tokenGeneratorSpyWithError
+      });
+      const params = {
+        email: 'any_email',
+        password: 'any_password'
+      };
+
+      const promise = sut.handler(params);
+
+      await expect(promise).rejects.toThrow(tokenGeneratorSpyWithError.errorMessage);
     });
   });
 });
