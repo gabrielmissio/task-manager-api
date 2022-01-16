@@ -2,9 +2,10 @@ const { MissingParamError } = require('../../../../src/utils/errors');
 const { DataFakerHelper } = require('../../../helpers');
 
 class LoginUseCase {
-  constructor({ userRepository, encrypter } = {}) {
+  constructor({ userRepository, encrypter, tokenGenerator } = {}) {
     this.userRepository = userRepository;
     this.encrypter = encrypter;
+    this.tokenGenerator = tokenGenerator;
   }
 
   async handler({ email, password }) {
@@ -64,6 +65,17 @@ const makeEncrypterSpyWithError = () => {
   return new EncrypterSpyWithError();
 };
 
+const makeTokenGeneratorSpy = () => {
+  class TokenGeneratorSpy {
+    async generate({ value }) {
+      this.params = value;
+      return this.response;
+    }
+  }
+
+  return new TokenGeneratorSpy();
+};
+
 const makeSut = () => {
   const userRepositorySpy = makeUserRepositorySpy();
   userRepositorySpy.response = {
@@ -74,15 +86,20 @@ const makeSut = () => {
   const encrypterSpy = makeEncrypterSpy();
   encrypterSpy.response = true;
 
+  const tokenGeneratorSpy = makeTokenGeneratorSpy();
+  tokenGeneratorSpy.response = DataFakerHelper.getString();
+
   const sut = new LoginUseCase({
     userRepository: userRepositorySpy,
-    encrypter: encrypterSpy
+    encrypter: encrypterSpy,
+    tokenGenerator: tokenGeneratorSpy
   });
 
   return {
     sut,
     userRepositorySpy,
-    encrypterSpy
+    encrypterSpy,
+    tokenGeneratorSpy
   };
 };
 
@@ -260,6 +277,25 @@ describe('Given the LoginUseCase', () => {
       const promise = sut.handler(params);
 
       await expect(promise).rejects.toThrow(new Error("Cannot read property 'generate' of undefined"));
+    });
+  });
+
+  describe('And the tokenGenerator dependency does not have generate method', () => {
+    test('Then I expect it throws an error', async () => {
+      const { userRepositorySpy, encrypterSpy } = makeSut();
+      const sut = new LoginUseCase({
+        userRepository: userRepositorySpy,
+        encrypter: encrypterSpy,
+        tokenGenerator: {}
+      });
+      const params = {
+        email: 'any_email',
+        password: 'any_password'
+      };
+
+      const promise = sut.handler(params);
+
+      await expect(promise).rejects.toThrow(new Error('this.tokenGenerator.generate is not a function'));
     });
   });
 });
