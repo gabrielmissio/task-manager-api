@@ -44,7 +44,10 @@ const makeEncrypterSpy = () => {
 
 const makeSut = () => {
   const userRepositorySpy = makeUserRepositorySpy();
-  userRepositorySpy.response = true;
+  userRepositorySpy.response = {
+    id: DataFakerHelper.getInteger(),
+    password: DataFakerHelper.getString()
+  };
 
   const encrypterSpy = makeEncrypterSpy();
   encrypterSpy.response = true;
@@ -168,6 +171,21 @@ describe('Given the LoginUseCase', () => {
       const promise = sut.handler(params);
 
       await expect(promise).rejects.toThrow(new Error('this.encrypter.compare is not a function'));
+    });
+  });
+
+  describe('And the encrypter dependency is injected correctly', () => {
+    test('Then I expect it calls the compare method with the expected values', async () => {
+      const { sut, encrypterSpy, userRepositorySpy } = makeSut();
+      const params = {
+        email: DataFakerHelper.getEmail(),
+        password: DataFakerHelper.getPassword()
+      };
+
+      await Promise.allSettled([sut.handler(params)]);
+
+      expect(encrypterSpy.params.value).toBe(params.password);
+      expect(encrypterSpy.params.hash).toBe(userRepositorySpy.response.password);
     });
   });
 
