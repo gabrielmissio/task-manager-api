@@ -153,6 +153,24 @@ describe('Given the LoginUseCase', () => {
     });
   });
 
+  describe('And the encrypter dependency does not have compare method', () => {
+    test('Then I expect it throws an error', async () => {
+      const { userRepositorySpy } = makeSut();
+      const sut = new LoginUseCase({
+        userRepository: userRepositorySpy,
+        encrypter: {}
+      });
+      const params = {
+        email: 'any_email',
+        password: 'any_password'
+      };
+
+      const promise = sut.handler(params);
+
+      await expect(promise).rejects.toThrow(new Error('this.encrypter.compare is not a function'));
+    });
+  });
+
   describe('And the tokenGenerator dependency is not injected', () => {
     test('Then I expect it throws an error', async () => {
       const { userRepositorySpy, encrypterSpy } = makeSut();
