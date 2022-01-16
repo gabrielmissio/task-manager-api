@@ -17,6 +17,7 @@ class LoginUseCase {
     if (!isValid) return null;
 
     await this.tokenGenerator.generate({ value: user.id });
+    this.userFactory.createAuthenticationModel();
     return user;
   }
 }
@@ -341,6 +342,25 @@ describe('Given the LoginUseCase', () => {
       const promise = sut.handler(params);
 
       await expect(promise).rejects.toThrow(tokenGeneratorSpyWithError.errorMessage);
+    });
+  });
+
+  describe('And the userFactory dependency is not injected', () => {
+    test('Then I expect it throws an error', async () => {
+      const { userRepositorySpy, encrypterSpy, tokenGeneratorSpy } = makeSut();
+      const sut = new LoginUseCase({
+        encrypter: encrypterSpy,
+        userRepository: userRepositorySpy,
+        tokenGenerator: tokenGeneratorSpy
+      });
+      const params = {
+        email: 'any_email',
+        password: 'any_password'
+      };
+
+      const promise = sut.handler(params);
+
+      await expect(promise).rejects.toThrow(new Error("Cannot read property 'createAuthenticationModel' of undefined"));
     });
   });
 });
