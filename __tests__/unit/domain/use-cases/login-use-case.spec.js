@@ -53,6 +53,17 @@ const makeEncrypterSpy = () => {
   return new EncrypterSpy();
 };
 
+const makeEncrypterSpyWithError = () => {
+  class EncrypterSpyWithError {
+    async getByEmail() {
+      this.errorMessage = DataFakerHelper.getSentence({ words: 3 });
+      throw new Error(this.errorMessage);
+    }
+  }
+
+  return new EncrypterSpyWithError();
+};
+
 const makeSut = () => {
   const userRepositorySpy = makeUserRepositorySpy();
   userRepositorySpy.response = {
@@ -212,6 +223,25 @@ describe('Given the LoginUseCase', () => {
 
       expect(encrypterSpy.params.value).toBe(params.password);
       expect(encrypterSpy.params.hash).toBe(userRepositorySpy.response.password);
+    });
+  });
+
+  describe('And the encrypter dependency throws an error', () => {
+    test('Then I expect it throws an error', async () => {
+      const { userRepositorySpy } = makeSut();
+      const encrypterSpyWithError = makeEncrypterSpyWithError();
+      const sut = new LoginUseCase({
+        userRepository: userRepositorySpy,
+        encrypter: encrypterSpyWithError
+      });
+      const params = {
+        email: DataFakerHelper.getEmail(),
+        password: 'any_password'
+      };
+
+      const promise = sut.handler(params);
+
+      await expect(promise).rejects.toThrow(encrypterSpyWithError.errorMessage);
     });
   });
 
