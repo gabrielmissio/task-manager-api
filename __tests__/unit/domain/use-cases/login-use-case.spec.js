@@ -16,7 +16,7 @@ class LoginUseCase {
     const isValid = user && (await this.encrypter.compare({ value: password, hash: user.password }));
     if (!isValid) return null;
 
-    this.tokenGenerator.generate(user.id);
+    await this.tokenGenerator.generate({ value: user.id });
     return user;
   }
 }
@@ -296,6 +296,20 @@ describe('Given the LoginUseCase', () => {
       const promise = sut.handler(params);
 
       await expect(promise).rejects.toThrow(new Error('this.tokenGenerator.generate is not a function'));
+    });
+  });
+
+  describe('And the tokenGenerator dependency is injected correctly', () => {
+    test('Then I expect it calls the generate method with the expected values', async () => {
+      const { sut, tokenGeneratorSpy, userRepositorySpy } = makeSut();
+      const params = {
+        email: DataFakerHelper.getEmail(),
+        password: DataFakerHelper.getPassword()
+      };
+
+      await Promise.allSettled([sut.handler(params)]);
+
+      expect(tokenGeneratorSpy.params).toBe(userRepositorySpy.response.id);
     });
   });
 });
