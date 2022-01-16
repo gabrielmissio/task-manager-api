@@ -15,6 +15,7 @@ class LoginUseCase {
     const isValid = user && (await this.encrypter.compare({ value: password, hash: user.password }));
     if (!isValid) return null;
 
+    this.tokenGenerator.generate(user.id);
     return user;
   }
 }
@@ -55,7 +56,8 @@ const makeSut = () => {
 
   return {
     sut,
-    userRepositorySpy
+    userRepositorySpy,
+    encrypterSpy
   };
 };
 
@@ -115,7 +117,7 @@ describe('Given the LoginUseCase', () => {
         password: 'any_password'
       };
 
-      await sut.handler(params);
+      await Promise.allSettled([sut.handler(params)]);
 
       expect(userRepositorySpy.email).toBe(params.email);
     });
@@ -148,6 +150,24 @@ describe('Given the LoginUseCase', () => {
       const promise = sut.handler(params);
 
       await expect(promise).rejects.toThrow(new Error("Cannot read property 'compare' of undefined"));
+    });
+  });
+
+  describe('And the tokenGenerator dependency is not injected', () => {
+    test('Then I expect it throws an error', async () => {
+      const { userRepositorySpy, encrypterSpy } = makeSut();
+      const sut = new LoginUseCase({
+        encrypter: encrypterSpy,
+        userRepository: userRepositorySpy
+      });
+      const params = {
+        email: 'any_email',
+        password: 'any_password'
+      };
+
+      const promise = sut.handler(params);
+
+      await expect(promise).rejects.toThrow(new Error("Cannot read property 'generate' of undefined"));
     });
   });
 });
