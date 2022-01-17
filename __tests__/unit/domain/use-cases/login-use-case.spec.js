@@ -17,8 +17,12 @@ class LoginUseCase {
     const isValid = user && (await this.encrypter.compare({ value: password, hash: user.password }));
     if (!isValid) return null;
 
-    await this.tokenGenerator.generate({ value: user.id });
-    this.userFactory.createAuthenticationModel();
+    const accessToken = await this.tokenGenerator.generate({ value: user.id });
+    this.userFactory.createAuthenticationModel({
+      id: user.id,
+      email: user.email,
+      accessToken
+    });
     return user;
   }
 }
@@ -27,6 +31,8 @@ const makeUserRepositorySpy = () => {
   class UserRepositorySpy {
     async getByEmail({ email }) {
       this.email = email;
+      if (this.response) this.response.email = email;
+
       return this.response;
     }
   }
@@ -89,6 +95,17 @@ const makeTokenGeneratorSpyWithError = () => {
   return new TokenGeneratorSpyWithError();
 };
 
+const makeUserFactorySpy = () => {
+  class UserFactorySpy {
+    createAuthenticationModel({ id, email, accessToken }) {
+      this.params = { id, email, accessToken };
+      return this.response;
+    }
+  }
+
+  return new UserFactorySpy();
+};
+
 const makeSut = () => {
   const userRepositorySpy = makeUserRepositorySpy();
   userRepositorySpy.response = {
@@ -102,17 +119,22 @@ const makeSut = () => {
   const tokenGeneratorSpy = makeTokenGeneratorSpy();
   tokenGeneratorSpy.response = DataFakerHelper.getString();
 
+  const userFactorySpy = makeUserFactorySpy();
+  userFactorySpy.response = DataFakerHelper.getObject();
+
   const sut = new LoginUseCase({
     userRepository: userRepositorySpy,
     encrypter: encrypterSpy,
-    tokenGenerator: tokenGeneratorSpy
+    tokenGenerator: tokenGeneratorSpy,
+    userFactory: userFactorySpy
   });
 
   return {
     sut,
     userRepositorySpy,
     encrypterSpy,
-    tokenGeneratorSpy
+    tokenGeneratorSpy,
+    userFactorySpy
   };
 };
 
@@ -382,6 +404,22 @@ describe('Given the LoginUseCase', () => {
       const promise = sut.handler(params);
 
       await expect(promise).rejects.toThrow(new Error('this.userFactory.createAuthenticationModel is not a function'));
+    });
+  });
+
+  describe('And the userFactory dependency is injected correctly', () => {
+    test('Then I expect it calls the createAuthenticationModel method with the expected values', async () => {
+      const { sut, userFactorySpy, tokenGeneratorSpy, userRepositorySpy } = makeSut();
+      const params = {
+        email: 'any_email',
+        password: 'anyPassword'
+      };
+
+      await Promise.allSettled([sut.handler(params)]);
+
+      expect(userFactorySpy.params.id).toBe(userRepositorySpy.response.id);
+      expect(userFactorySpy.params.email).toBe(userRepositorySpy.response.email);
+      expect(userFactorySpy.params.accessToken).toBe(tokenGeneratorSpy.response);
     });
   });
 });
