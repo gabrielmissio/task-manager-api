@@ -2,10 +2,11 @@ const { MissingParamError } = require('../../../../src/utils/errors');
 const { DataFakerHelper } = require('../../../helpers');
 
 class LoginUseCase {
-  constructor({ userRepository, encrypter, tokenGenerator } = {}) {
+  constructor({ userRepository, encrypter, tokenGenerator, userFactory } = {}) {
     this.userRepository = userRepository;
     this.encrypter = encrypter;
     this.tokenGenerator = tokenGenerator;
+    this.userFactory = userFactory;
   }
 
   async handler({ email, password }) {
@@ -361,6 +362,26 @@ describe('Given the LoginUseCase', () => {
       const promise = sut.handler(params);
 
       await expect(promise).rejects.toThrow(new Error("Cannot read property 'createAuthenticationModel' of undefined"));
+    });
+  });
+
+  describe('And the userFactory dependency does not have createAuthenticationModel method', () => {
+    test('Then I expect it throws an error', async () => {
+      const { userRepositorySpy, encrypterSpy, tokenGeneratorSpy } = makeSut();
+      const sut = new LoginUseCase({
+        userRepository: userRepositorySpy,
+        encrypter: encrypterSpy,
+        tokenGenerator: tokenGeneratorSpy,
+        userFactory: {}
+      });
+      const params = {
+        email: 'any_email',
+        password: 'any_password'
+      };
+
+      const promise = sut.handler(params);
+
+      await expect(promise).rejects.toThrow(new Error('this.userFactory.createAuthenticationModel is not a function'));
     });
   });
 });
