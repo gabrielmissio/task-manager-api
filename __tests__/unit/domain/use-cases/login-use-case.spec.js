@@ -106,6 +106,17 @@ const makeUserFactorySpy = () => {
   return new UserFactorySpy();
 };
 
+const makeUserFactorySpyWithError = () => {
+  class UserFactorySpyWithError {
+    createAuthenticationModel() {
+      this.errorMessage = DataFakerHelper.getSentence({ words: 3 });
+      throw new Error(this.errorMessage);
+    }
+  }
+
+  return new UserFactorySpyWithError();
+};
+
 const makeSut = () => {
   const userRepositorySpy = makeUserRepositorySpy();
   userRepositorySpy.response = {
@@ -411,7 +422,7 @@ describe('Given the LoginUseCase', () => {
     test('Then I expect it calls the createAuthenticationModel method with the expected values', async () => {
       const { sut, userFactorySpy, tokenGeneratorSpy, userRepositorySpy } = makeSut();
       const params = {
-        email: 'any_email',
+        email: DataFakerHelper.getEmail(),
         password: 'anyPassword'
       };
 
@@ -420,6 +431,27 @@ describe('Given the LoginUseCase', () => {
       expect(userFactorySpy.params.id).toBe(userRepositorySpy.response.id);
       expect(userFactorySpy.params.email).toBe(userRepositorySpy.response.email);
       expect(userFactorySpy.params.accessToken).toBe(tokenGeneratorSpy.response);
+    });
+  });
+
+  describe('And the userFactory dependency throws an error', () => {
+    test('Then I expect it throws an error', async () => {
+      const { userRepositorySpy, encrypterSpy, tokenGeneratorSpy } = makeSut();
+      const userFactorySpyWithError = makeUserFactorySpyWithError();
+      const sut = new LoginUseCase({
+        userRepository: userRepositorySpy,
+        encrypter: encrypterSpy,
+        tokenGenerator: tokenGeneratorSpy,
+        userFactory: userFactorySpyWithError
+      });
+      const params = {
+        email: 'any_email',
+        password: 'any_password'
+      };
+
+      const promise = sut.handler(params);
+
+      await expect(promise).rejects.toThrow(userFactorySpyWithError.errorMessage);
     });
   });
 });
