@@ -1,19 +1,6 @@
+const { UserFactory } = require('../../../../src/domain/factories');
 const { MissingParamError } = require('../../../../src/utils/errors');
 const { DataFakerHelper } = require('../../../helpers');
-
-class UserFactory {
-  createAuthenticationModel({ id, email, accessToken }) {
-    if (!id) throw new MissingParamError('id');
-    if (!email) throw new MissingParamError('email');
-    if (!accessToken) throw new MissingParamError('accessToken');
-
-    return {
-      id,
-      email,
-      accessToken
-    };
-  }
-}
 
 const makeSut = () => {
   const sut = new UserFactory();
