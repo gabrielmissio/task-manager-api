@@ -1,32 +1,6 @@
+const { LoginUseCase } = require('../../../../src/domain/use-cases');
 const { MissingParamError } = require('../../../../src/utils/errors');
 const { DataFakerHelper } = require('../../../helpers');
-
-class LoginUseCase {
-  constructor({ userRepository, encrypter, tokenGenerator, userFactory } = {}) {
-    this.userRepository = userRepository;
-    this.encrypter = encrypter;
-    this.tokenGenerator = tokenGenerator;
-    this.userFactory = userFactory;
-  }
-
-  async handler({ email, password }) {
-    if (!email) throw new MissingParamError('email');
-    if (!password) throw new MissingParamError('password');
-
-    const user = await this.userRepository.getByEmail({ email });
-    const isValid = user && (await this.encrypter.compare({ value: password, hash: user.password }));
-    if (!isValid) return null;
-
-    const accessToken = await this.tokenGenerator.generate({ value: user.id });
-    const authenticationModel = this.userFactory.createAuthenticationModel({
-      id: user.id,
-      email: user.email,
-      accessToken
-    });
-
-    return authenticationModel;
-  }
-}
 
 const makeUserRepositorySpy = () => {
   class UserRepositorySpy {
@@ -460,8 +434,8 @@ describe('Given the LoginUseCase', () => {
     test('Then I expect it returns the AuthenticationModel returned from the userFactory dependency', async () => {
       const { sut, userFactorySpy } = makeSut();
       const params = {
-        email: DataFakerHelper.getEmail(),
-        password: DataFakerHelper.getPassword()
+        email: 'any_email',
+        password: 'any_password'
       };
 
       const response = await sut.handler(params);
