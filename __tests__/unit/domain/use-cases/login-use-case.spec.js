@@ -18,12 +18,13 @@ class LoginUseCase {
     if (!isValid) return null;
 
     const accessToken = await this.tokenGenerator.generate({ value: user.id });
-    this.userFactory.createAuthenticationModel({
+    const authenticationModel = this.userFactory.createAuthenticationModel({
       id: user.id,
       email: user.email,
       accessToken
     });
-    return user;
+
+    return authenticationModel;
   }
 }
 
@@ -452,6 +453,20 @@ describe('Given the LoginUseCase', () => {
       const promise = sut.handler(params);
 
       await expect(promise).rejects.toThrow(userFactorySpyWithError.errorMessage);
+    });
+  });
+
+  describe('And valid credentials are provided', () => {
+    test('Then I expect it returns the AuthenticationModel returned from the userFactory dependency', async () => {
+      const { sut, userFactorySpy } = makeSut();
+      const params = {
+        email: DataFakerHelper.getEmail(),
+        password: DataFakerHelper.getPassword()
+      };
+
+      const response = await sut.handler(params);
+
+      await expect(response).toEqual(userFactorySpy.response);
     });
   });
 });
