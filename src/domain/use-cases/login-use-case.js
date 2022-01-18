@@ -1,11 +1,11 @@
 const { MissingParamError } = require('../../utils/errors');
 
 class LoginUseCase {
-  constructor({ userRepository, encrypter, tokenGenerator, userFactory } = {}) {
+  constructor({ userRepository, encrypter, tokenGenerator, authenticationSerializer } = {}) {
     this.userRepository = userRepository;
     this.encrypter = encrypter;
     this.tokenGenerator = tokenGenerator;
-    this.userFactory = userFactory;
+    this.authenticationSerializer = authenticationSerializer;
   }
 
   async handler({ email, password }) {
@@ -17,7 +17,7 @@ class LoginUseCase {
     if (!isValid) return null;
 
     const accessToken = await this.tokenGenerator.generate({ value: user.id });
-    const authenticationModel = this.userFactory.createAuthenticationModel({
+    const authenticationModel = this.authenticationSerializer.serialize({
       id: user.id,
       email: user.email,
       accessToken

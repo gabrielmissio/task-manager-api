@@ -1,7 +1,7 @@
 const { MissingParamError } = require('../../utils/errors');
 
-class UserFactory {
-  createAuthenticationModel({ id, email, accessToken }) {
+class AuthenticationSerializer {
+  serialize({ id, email, accessToken }) {
     if (!id) throw new MissingParamError('id');
     if (!email) throw new MissingParamError('email');
     if (!accessToken) throw new MissingParamError('accessToken');
@@ -14,4 +14,4 @@ class UserFactory {
   }
 }
 
-module.exports = UserFactory;
+module.exports = AuthenticationSerializer;
