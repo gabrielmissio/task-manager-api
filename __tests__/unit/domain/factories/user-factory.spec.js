@@ -1,10 +1,17 @@
 const { MissingParamError } = require('../../../../src/utils/errors');
+const { DataFakerHelper } = require('../../../helpers');
 
 class UserFactory {
-  createAuthenticationModel({ id, email }) {
+  createAuthenticationModel({ id, email, accessToken }) {
     if (!id) throw new MissingParamError('id');
     if (!email) throw new MissingParamError('email');
-    throw new MissingParamError('accessToken');
+    if (!accessToken) throw new MissingParamError('accessToken');
+
+    return {
+      id,
+      email,
+      accessToken
+    };
   }
 }
 
@@ -44,6 +51,26 @@ describe('Given the UserFactory', () => {
         const response = () => sut.createAuthenticationModel(params);
 
         expect(response).toThrow(new MissingParamError('accessToken'));
+      });
+    });
+
+    describe('And valid parameters are provided', () => {
+      test('Then I expect it returns an AuthenticationModel', () => {
+        const { sut } = makeSut();
+        const params = {
+          id: DataFakerHelper.getInteger(),
+          email: DataFakerHelper.getEmail(),
+          accessToken: DataFakerHelper.getString()
+        };
+        const response = sut.createAuthenticationModel(params);
+
+        expect(JSON.stringify(response)).toBe(
+          JSON.stringify({
+            id: params.id,
+            email: params.email,
+            accessToken: params.accessToken
+          })
+        );
       });
     });
   });
