@@ -1,9 +1,10 @@
 const { MissingParamError } = require('../../../../src/utils/errors');
 
 class UserFactory {
-  createAuthenticationModel({ id }) {
+  createAuthenticationModel({ id, email }) {
     if (!id) throw new MissingParamError('id');
-    throw new MissingParamError('email');
+    if (!email) throw new MissingParamError('email');
+    throw new MissingParamError('accessToken');
   }
 }
 
@@ -30,6 +31,19 @@ describe('Given the UserFactory', () => {
         const response = () => sut.createAuthenticationModel(params);
 
         expect(response).toThrow(new MissingParamError('email'));
+      });
+    });
+
+    describe('And no accessToken is provided', () => {
+      test('Then I expect it throws a MissingParamError', () => {
+        const { sut } = makeSut();
+        const params = {
+          id: 'any_id',
+          email: 'any_email'
+        };
+        const response = () => sut.createAuthenticationModel(params);
+
+        expect(response).toThrow(new MissingParamError('accessToken'));
       });
     });
   });
