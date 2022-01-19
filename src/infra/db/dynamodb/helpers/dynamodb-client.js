@@ -19,6 +19,15 @@ class DynamodbClient {
     return response;
   }
 
+  static async query(params) {
+    const response = await CLIENT.query(params).promise();
+
+    const error = this.getResponseError(response);
+    if (error) throw new Error(error);
+
+    return response;
+  }
+
   static getResponseError({ $response }) {
     return $response && $response.error;
   }
