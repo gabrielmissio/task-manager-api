@@ -7,37 +7,43 @@ const items = [
     SK: 'PROFILE',
     name: 'John Smith',
     email: 'user@domain.com',
-    password: 'passwordhash'
+    password: 'passwordhash',
+    createdAt: '2019-01-21T20:36:59.632Z'
   },
   {
     PK: 'USER#001',
     SK: 'BOOK#001',
     title: 'New Year Goals',
-    description: 'Lore Ipsum'
+    description: 'Lore Ipsum',
+    createdAt: '2019-01-21T20:36:59.632Z'
   },
   {
     PK: 'USER#001',
     SK: 'BOOK#002',
     title: 'Carrer',
-    description: 'Lore Ipsum'
+    description: 'Lore Ipsum',
+    createdAt: '2019-01-21T20:36:59.632Z'
   },
   {
     PK: 'USER#001',
     SK: 'BOOK#001#TASK#001',
     description: 'Take a trip at least',
-    isDone: false
+    isDone: false,
+    createdAt: '2019-01-21T20:36:59.632Z'
   },
   {
     PK: 'USER#001',
     SK: 'BOOK#001#TASK#002',
     description: 'Get in shape',
-    isDone: false
+    isDone: false,
+    createdAt: '2019-01-21T20:36:59.632Z'
   },
   {
     PK: 'USER#001',
     SK: 'BOOK#002#TASK#003',
     description: 'Get an AWS certification',
-    isDone: false
+    isDone: false,
+    createdAt: '2019-01-21T20:36:59.632Z'
   }
 ];
 
