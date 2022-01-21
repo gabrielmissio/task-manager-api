@@ -6,7 +6,8 @@ const items = [
     PK: 'USER#001',
     SK: 'PROFILE',
     name: 'John Smith',
-    email: 'user@domain.com'
+    email: 'user@domain.com',
+    password: 'passwordhash'
   },
   {
     PK: 'USER#001',
