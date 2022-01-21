@@ -1,7 +1,7 @@
 const { MissingParamError } = require('../../../../../../src/utils/errors');
 const { DynamodbClient } = require('../../../../../../src/infra/db/dynamodb/helpers');
 const { TASK_MANAGER_TABLE_NAME } = require('../../../../../../src/main/confing/env');
-const { DataFakerHelper } = require('../../../../../helpers');
+const { DataFakerHelper, ProfileDataFaker } = require('../../../../../helpers');
 
 class GetUserProfileByEmailRepository {
   async get({ email }) {
@@ -57,6 +57,34 @@ describe('Given the GetUserProfileByEmailRepository', () => {
       const response = await sut.get({ email: DataFakerHelper.getEmail() });
 
       expect(response).toBeNull();
+    });
+  });
+
+  describe('And there is already a user with the provided email in the database', () => {
+    const profileFake = ProfileDataFaker.getProfile();
+
+    beforeAll(async () => {
+      await DynamodbClient.put({
+        TableName: TASK_MANAGER_TABLE_NAME,
+        Item: profileFake
+      });
+    });
+
+    afterAll(async () => {
+      await DynamodbClient.delete({
+        TableName: TASK_MANAGER_TABLE_NAME,
+        Key: {
+          PK: profileFake.PK,
+          SK: profileFake.SK
+        }
+      });
+    });
+
+    test('Then I expect it returns the user with the provided email', async () => {
+      const { sut } = makeSut();
+      const response = await sut.get({ email: profileFake.email });
+
+      expect(response).toEqual(sut.buildUserProfile(profileFake));
     });
   });
 });
