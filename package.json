@@ -6,6 +6,9 @@
   "scripts": {
     "test": "jest --color --runInBand --silent",
     "test-unit": "npm test -- -c jest-unit-config.js",
+    "pretest-integration": "npm run start-dynamodb-migrations",
+    "test-integration": "npm test -- -c jest-integration-config.js",
+    "posttest-integration": "npm run undo-dynamodb-migrations",
     "start-dynamodb": "docker compose up",
     "stop-dynamodb": "docker compose down",
     "start-dynamodb-migrations": "node src/infra/db/dynamodb/migrations/create-task-manager.js start",
