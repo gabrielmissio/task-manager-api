@@ -11,6 +11,7 @@
     "undo-dynamodb-migrations": "node src/infra/db/dynamodb/migrations/create-task-manager.js undo",
     "start-dynamodb-seeders": "node src/infra/db/dynamodb/seeders/demo-task-manager.js start",
     "undo-dynamodb-seeders": "node src/infra/db/dynamodb/seeders/demo-task-manager.js undo",
+    "dynamodb-scan": "aws dynamodb scan --table-name task-manager  --endpoint-url http://localhost:8000",
     "prepare": "husky install",
     "lint": "npx eslint ."
   },
