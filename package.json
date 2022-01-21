@@ -5,6 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "jest --color --runInBand --silent",
+    "start-dynamodb": "docker compose up",
+    "stop-dynamodb": "docker compose down",
     "prepare": "husky install",
     "lint": "npx eslint ."
   },
