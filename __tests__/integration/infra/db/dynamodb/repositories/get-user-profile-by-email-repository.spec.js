@@ -2,38 +2,7 @@ const { MissingParamError } = require('../../../../../../src/utils/errors');
 const { DynamodbClient } = require('../../../../../../src/infra/db/dynamodb/helpers');
 const { TASK_MANAGER_TABLE_NAME } = require('../../../../../../src/main/confing/env');
 const { DataFakerHelper, ProfileDataFaker } = require('../../../../../helpers');
-
-class GetUserProfileByEmailRepository {
-  async get({ email }) {
-    const params = this.buildParams({ email });
-    const dynamodbResponse = await DynamodbClient.query(params);
-
-    const userNotFound = dynamodbResponse.Count < 1;
-    if (userNotFound) return null;
-
-    const userProfile = this.buildUserProfile(dynamodbResponse.Items[0]);
-    return userProfile;
-  }
-
-  buildParams({ email }) {
-    if (!email) throw new MissingParamError('email');
-    return {
-      TableName: TASK_MANAGER_TABLE_NAME,
-      IndexName: 'email-index',
-      KeyConditionExpression: 'email = :email',
-      ExpressionAttributeValues: { ':email': email }
-    };
-  }
-
-  buildUserProfile(payload) {
-    return {
-      id: payload.PK.replace('USER#', ''),
-      name: payload.name,
-      email: payload.email,
-      password: payload.password
-    };
-  }
-}
+const { GetUserProfileByEmailRepository } = require('../../../../../../src/infra/db/dynamodb/repositories');
 
 const makeSut = () => {
   const sut = new GetUserProfileByEmailRepository();
@@ -60,7 +29,7 @@ describe('Given the GetUserProfileByEmailRepository', () => {
     });
   });
 
-  describe('And there is already a user with the provided email in the database', () => {
+  describe('And there is already an user with the provided email in the database', () => {
     const profileFake = ProfileDataFaker.getProfile();
 
     beforeAll(async () => {
