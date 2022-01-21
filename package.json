@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "jest --color --runInBand --silent",
+    "test-unit": "npm test -- -c jest-unit-config.js",
     "start-dynamodb": "docker compose up",
     "stop-dynamodb": "docker compose down",
     "start-dynamodb-migrations": "node src/infra/db/dynamodb/migrations/create-task-manager.js start",
