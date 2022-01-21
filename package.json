@@ -9,6 +9,8 @@
     "stop-dynamodb": "docker compose down",
     "start-dynamodb-migrations": "node src/infra/db/dynamodb/migrations/create-task-manager.js start",
     "undo-dynamodb-migrations": "node src/infra/db/dynamodb/migrations/create-task-manager.js undo",
+    "start-dynamodb-seeders": "node src/infra/db/dynamodb/seeders/demo-task-manager.js start",
+    "undo-dynamodb-seeders": "node src/infra/db/dynamodb/seeders/demo-task-manager.js undo",
     "prepare": "husky install",
     "lint": "npx eslint ."
   },
