@@ -7,6 +7,8 @@
     "test": "jest --color --runInBand --silent",
     "start-dynamodb": "docker compose up",
     "stop-dynamodb": "docker compose down",
+    "start-dynamodb-migrations": "node src/infra/db/dynamodb/migrations/create-task-manager.js start",
+    "undo-dynamodb-migrations": "node src/infra/db/dynamodb/migrations/create-task-manager.js undo",
     "prepare": "husky install",
     "lint": "npx eslint ."
   },
