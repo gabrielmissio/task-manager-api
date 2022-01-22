@@ -1,8 +1,8 @@
 const { MissingParamError } = require('../../utils/errors');
 
 class LoginService {
-  constructor({ userRepository, encrypter, tokenGenerator, authenticationSerializer } = {}) {
-    this.userRepository = userRepository;
+  constructor({ getProfileByEmailRepository, encrypter, tokenGenerator, authenticationSerializer } = {}) {
+    this.getProfileByEmailRepository = getProfileByEmailRepository;
     this.encrypter = encrypter;
     this.tokenGenerator = tokenGenerator;
     this.authenticationSerializer = authenticationSerializer;
@@ -12,7 +12,7 @@ class LoginService {
     if (!email) throw new MissingParamError('email');
     if (!password) throw new MissingParamError('password');
 
-    const user = await this.userRepository.getByEmail({ email });
+    const user = await this.getProfileByEmailRepository.get({ email });
     const isValid = user && (await this.encrypter.compare({ value: password, hash: user.password }));
     if (!isValid) return null;
 
