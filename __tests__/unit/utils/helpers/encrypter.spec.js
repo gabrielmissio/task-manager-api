@@ -1,6 +1,7 @@
 const bcryptjs = require('bcryptjs');
 
 const { MissingParamError } = require('../../../../src/utils/errors');
+const { DataFakerHelper } = require('../../../helpers');
 
 class Encrypter {
   async compare({ value, hash }) {
@@ -56,6 +57,20 @@ describe('Given the Encrypter', () => {
       const isValid = await sut.compare(params);
 
       expect(isValid).toBe(false);
+    });
+  });
+
+  describe('And calls compare method of bcryptjs', () => {
+    test('Then I expect it calls compare method of bcryptjs with expected params', async () => {
+      const { sut } = makeSut();
+      const params = {
+        value: DataFakerHelper.getString(),
+        hash: DataFakerHelper.getString()
+      };
+      await sut.compare(params);
+
+      expect(bcryptjs.value).toBe(params.value);
+      expect(bcryptjs.hash).toBe(params.hash);
     });
   });
 });
