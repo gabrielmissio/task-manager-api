@@ -1,5 +1,5 @@
-const GetUserProfileByEmailRepository = require('./get-user-profile-by-email-repository');
+const GetProfileByEmailRepository = require('./get-profile-by-email-repository');
 
 module.exports = {
-  GetUserProfileByEmailRepository
+  GetProfileByEmailRepository
 };

@@ -2,16 +2,16 @@ const { MissingParamError } = require('../../../../../../src/utils/errors');
 const { DynamodbClient } = require('../../../../../../src/infra/db/dynamodb/helpers');
 const { TASK_MANAGER_TABLE_NAME } = require('../../../../../../src/main/confing/env');
 const { DataFakerHelper, ProfileDataFaker } = require('../../../../../helpers');
-const { UserProfileFactory } = require('../../../../../../src/infra/db/dynamodb/factories');
-const { GetUserProfileByEmailRepository } = require('../../../../../../src/infra/db/dynamodb/repositories');
+const { ProfileFactory } = require('../../../../../../src/infra/db/dynamodb/factories');
+const { GetProfileByEmailRepository } = require('../../../../../../src/infra/db/dynamodb/repositories');
 
 const makeSut = () => {
-  const sut = new GetUserProfileByEmailRepository();
+  const sut = new GetProfileByEmailRepository();
 
   return { sut };
 };
 
-describe('Given the GetUserProfileByEmailRepository', () => {
+describe('Given the GetProfileByEmailRepository', () => {
   describe('And no email is provided', () => {
     test('Then I expect it throws a MissingParamError', async () => {
       const { sut } = makeSut();
@@ -54,7 +54,7 @@ describe('Given the GetUserProfileByEmailRepository', () => {
       const { sut } = makeSut();
       const response = await sut.get({ email: profileFake.email });
 
-      expect(response).toEqual(UserProfileFactory.buildExistingUserProfile(profileFake));
+      expect(response).toEqual(ProfileFactory.buildExistingProfile(profileFake));
     });
   });
 });

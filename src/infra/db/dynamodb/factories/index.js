@@ -1,5 +1,5 @@
-const UserProfileFactory = require('./user-profile-factory');
+const ProfileFactory = require('./profile-factory');
 
 module.exports = {
-  UserProfileFactory
+  ProfileFactory
 };

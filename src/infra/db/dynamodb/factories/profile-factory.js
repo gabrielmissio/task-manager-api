@@ -1,5 +1,5 @@
-class UserProfileFactory {
-  static buildExistingUserProfile(payload) {
+class ProfileFactory {
+  static buildExistingProfile(payload) {
     return {
       id: payload.PK.replace('USER#', ''),
       name: payload.name,
@@ -10,4 +10,4 @@ class UserProfileFactory {
   }
 }
 
-module.exports = UserProfileFactory;
+module.exports = ProfileFactory;
