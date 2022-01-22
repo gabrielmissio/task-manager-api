@@ -1,21 +1,8 @@
 const JWT = require('jsonwebtoken');
 
+const { TokenGenerator } = require('../../../../src/utils/helpers');
 const { MissingParamError } = require('../../../../src/utils/errors');
 const { DataFakerHelper } = require('../../../helpers');
-
-class TokenGenerator {
-  constructor({ secret } = {}) {
-    this.secret = secret;
-  }
-
-  async generate({ value } = {}) {
-    if (!this.secret) throw new MissingParamError('secret');
-    if (!value) throw new MissingParamError('value');
-
-    const token = JWT.sign({ id: value }, this.secret);
-    return token;
-  }
-}
 
 const makeSut = () => {
   const sut = new TokenGenerator({ secret: 'any_secret' });
