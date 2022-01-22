@@ -3,9 +3,9 @@ const { InvalidRequestError } = require('../errors');
 const { MissingParamError } = require('../../utils/errors');
 
 class LoginController {
-  constructor({ requestBodyValidator, loginUseCase } = {}) {
+  constructor({ requestBodyValidator, loginService } = {}) {
     this.requestBodyValidator = requestBodyValidator;
-    this.loginUseCase = loginUseCase;
+    this.loginService = loginService;
   }
 
   async handler(httpRequest) {
@@ -15,7 +15,7 @@ class LoginController {
       const errors = this.requestBodyValidator.validate(httpRequest.body);
       if (errors) return HttpResponse.badRequest(new InvalidRequestError(errors));
 
-      const authenticationModel = await this.loginUseCase.handler(httpRequest.body);
+      const authenticationModel = await this.loginService.handler(httpRequest.body);
       if (!authenticationModel) return HttpResponse.unauthorized();
 
       return HttpResponse.ok(authenticationModel);

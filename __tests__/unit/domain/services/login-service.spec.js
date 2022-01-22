@@ -1,4 +1,4 @@
-const { LoginUseCase } = require('../../../../src/domain/use-cases');
+const { LoginService } = require('../../../../src/domain/services');
 const { MissingParamError } = require('../../../../src/utils/errors');
 const { DataFakerHelper } = require('../../../helpers');
 
@@ -108,7 +108,7 @@ const makeSut = () => {
   const authenticationSerializerSpy = makeAuthenticationSerializerSpy();
   authenticationSerializerSpy.response = DataFakerHelper.getObject();
 
-  const sut = new LoginUseCase({
+  const sut = new LoginService({
     userRepository: userRepositorySpy,
     encrypter: encrypterSpy,
     tokenGenerator: tokenGeneratorSpy,
@@ -124,7 +124,7 @@ const makeSut = () => {
   };
 };
 
-describe('Given the LoginUseCase', () => {
+describe('Given the LoginService', () => {
   describe('And no email is provided', () => {
     test('Then I expect it throws a MissingParamError', async () => {
       const { sut } = makeSut();
@@ -146,7 +146,7 @@ describe('Given the LoginUseCase', () => {
 
   describe('And the userRepository dependency is not injected', () => {
     test('Then I expect it throws an error', async () => {
-      const sut = new LoginUseCase();
+      const sut = new LoginService();
       const params = {
         email: 'any_email',
         password: 'any_password'
@@ -160,7 +160,7 @@ describe('Given the LoginUseCase', () => {
 
   describe('And the userRepository dependency does not have getByEmail method', () => {
     test('Then I expect it throws an error', async () => {
-      const sut = new LoginUseCase({ userRepository: {} });
+      const sut = new LoginService({ userRepository: {} });
       const params = {
         email: 'any_email',
         password: 'any_password'
@@ -189,7 +189,7 @@ describe('Given the LoginUseCase', () => {
   describe('And the userRepository dependency throws an error', () => {
     test('Then I expect it throws an error', async () => {
       const userRepositorySpyWithError = makeUserRepositorySpyWithError();
-      const sut = new LoginUseCase({ userRepository: userRepositorySpyWithError });
+      const sut = new LoginService({ userRepository: userRepositorySpyWithError });
       const params = {
         email: 'any_email',
         password: 'any_password'
@@ -219,7 +219,7 @@ describe('Given the LoginUseCase', () => {
   describe('And the encrypter dependency is not injected', () => {
     test('Then I expect it throws an error', async () => {
       const { userRepositorySpy } = makeSut();
-      const sut = new LoginUseCase({ userRepository: userRepositorySpy });
+      const sut = new LoginService({ userRepository: userRepositorySpy });
       const params = {
         email: 'any_email',
         password: 'any_password'
@@ -234,7 +234,7 @@ describe('Given the LoginUseCase', () => {
   describe('And the encrypter dependency does not have compare method', () => {
     test('Then I expect it throws an error', async () => {
       const { userRepositorySpy } = makeSut();
-      const sut = new LoginUseCase({
+      const sut = new LoginService({
         userRepository: userRepositorySpy,
         encrypter: {}
       });
@@ -268,7 +268,7 @@ describe('Given the LoginUseCase', () => {
     test('Then I expect it throws an error', async () => {
       const { userRepositorySpy } = makeSut();
       const encrypterSpyWithError = makeEncrypterSpyWithError();
-      const sut = new LoginUseCase({
+      const sut = new LoginService({
         userRepository: userRepositorySpy,
         encrypter: encrypterSpyWithError
       });
@@ -286,7 +286,7 @@ describe('Given the LoginUseCase', () => {
   describe('And the tokenGenerator dependency is not injected', () => {
     test('Then I expect it throws an error', async () => {
       const { userRepositorySpy, encrypterSpy } = makeSut();
-      const sut = new LoginUseCase({
+      const sut = new LoginService({
         encrypter: encrypterSpy,
         userRepository: userRepositorySpy
       });
@@ -304,7 +304,7 @@ describe('Given the LoginUseCase', () => {
   describe('And the tokenGenerator dependency does not have generate method', () => {
     test('Then I expect it throws an error', async () => {
       const { userRepositorySpy, encrypterSpy } = makeSut();
-      const sut = new LoginUseCase({
+      const sut = new LoginService({
         userRepository: userRepositorySpy,
         encrypter: encrypterSpy,
         tokenGenerator: {}
@@ -338,7 +338,7 @@ describe('Given the LoginUseCase', () => {
     test('Then I expect it throws an error', async () => {
       const { userRepositorySpy, encrypterSpy } = makeSut();
       const tokenGeneratorSpyWithError = makeTokenGeneratorSpyWithError();
-      const sut = new LoginUseCase({
+      const sut = new LoginService({
         userRepository: userRepositorySpy,
         encrypter: encrypterSpy,
         tokenGenerator: tokenGeneratorSpyWithError
@@ -357,7 +357,7 @@ describe('Given the LoginUseCase', () => {
   describe('And the authenticationSerializer dependency is not injected', () => {
     test('Then I expect it throws an error', async () => {
       const { userRepositorySpy, encrypterSpy, tokenGeneratorSpy } = makeSut();
-      const sut = new LoginUseCase({
+      const sut = new LoginService({
         encrypter: encrypterSpy,
         userRepository: userRepositorySpy,
         tokenGenerator: tokenGeneratorSpy
@@ -376,7 +376,7 @@ describe('Given the LoginUseCase', () => {
   describe('And the authenticationSerializer dependency does not have serialize method', () => {
     test('Then I expect it throws an error', async () => {
       const { userRepositorySpy, encrypterSpy, tokenGeneratorSpy } = makeSut();
-      const sut = new LoginUseCase({
+      const sut = new LoginService({
         userRepository: userRepositorySpy,
         encrypter: encrypterSpy,
         tokenGenerator: tokenGeneratorSpy,
@@ -413,7 +413,7 @@ describe('Given the LoginUseCase', () => {
     test('Then I expect it throws an error', async () => {
       const { userRepositorySpy, encrypterSpy, tokenGeneratorSpy } = makeSut();
       const authenticationSerializerSpyWithError = makeAuthenticationSerializerSpyWithError();
-      const sut = new LoginUseCase({
+      const sut = new LoginService({
         userRepository: userRepositorySpy,
         encrypter: encrypterSpy,
         tokenGenerator: tokenGeneratorSpy,

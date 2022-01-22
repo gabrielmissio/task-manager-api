@@ -1,6 +1,6 @@
 const { MissingParamError } = require('../../utils/errors');
 
-class LoginUseCase {
+class LoginService {
   constructor({ userRepository, encrypter, tokenGenerator, authenticationSerializer } = {}) {
     this.userRepository = userRepository;
     this.encrypter = encrypter;
@@ -27,4 +27,4 @@ class LoginUseCase {
   }
 }
 
-module.exports = LoginUseCase;
+module.exports = LoginService;
