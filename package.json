@@ -17,7 +17,8 @@
     "undo-dynamodb-seeders": "node src/infra/db/dynamodb/seeders/demo-task-manager.js undo",
     "dynamodb-scan": "aws dynamodb scan --table-name task-manager  --endpoint-url http://localhost:8000",
     "prepare": "husky install",
-    "lint": "npx eslint ."
+    "lint": "npx eslint .",
+    "start": "node index.js"
   },
   "repository": {
     "type": "git",
@@ -34,7 +35,8 @@
     "eslint-plugin-prettier": "4.0.0",
     "husky": "7.0.4",
     "jest": "27.4.7",
-    "prettier": "2.5.1"
+    "prettier": "2.5.1",
+    "supertest": "^6.2.2"
   },
   "dependencies": {
     "aws-sdk": "2.1059.0",
