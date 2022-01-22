@@ -51,7 +51,7 @@ describe('Given the LoginController', () => {
       expect(response.statusCode).toBe(500);
     });
     test('Then I expect it returns the body with InternalServerError message', () => {
-      expect(response.body).toBe(new InternalServerError().message);
+      expect(response.body).toEqual({ error: new InternalServerError().message });
     });
   });
 
@@ -66,7 +66,7 @@ describe('Given the LoginController', () => {
       expect(response.statusCode).toBe(500);
     });
     test('Then I expect it returns the body with InternalServerError message', () => {
-      expect(response.body).toBe(new InternalServerError().message);
+      expect(response.body).toEqual({ error: new InternalServerError().message });
     });
   });
 
@@ -82,7 +82,7 @@ describe('Given the LoginController', () => {
     });
 
     test('Then I expect it returns the body with InternalServerError message', () => {
-      expect(response.body).toBe(new InternalServerError().message);
+      expect(response.body).toEqual({ error: new InternalServerError().message });
     });
   });
 
@@ -98,7 +98,7 @@ describe('Given the LoginController', () => {
     });
 
     test('Then I expect it returns the body with InternalServerError message', () => {
-      expect(response.body).toBe(new InternalServerError().message);
+      expect(response.body).toEqual({ error: new InternalServerError().message });
     });
   });
 
@@ -126,7 +126,7 @@ describe('Given the LoginController', () => {
       expect(response.statusCode).toBe(400);
     });
     test('Then I expect it returns the body with a message indicating the error', () => {
-      expect(response.body).toBe(new InvalidRequestError(errorMessage).message);
+      expect(response.body).toEqual({ error: new InvalidRequestError(errorMessage).message });
     });
   });
 
@@ -143,7 +143,7 @@ describe('Given the LoginController', () => {
     });
 
     test('Then I expect it returns the body with InternalServerError message', () => {
-      expect(response.body).toBe(new InternalServerError().message);
+      expect(response.body).toEqual({ error: new InternalServerError().message });
     });
   });
 
@@ -160,7 +160,7 @@ describe('Given the LoginController', () => {
     });
 
     test('Then I expect it returns the body with InternalServerError message', () => {
-      expect(response.body).toBe(new InternalServerError().message);
+      expect(response.body).toEqual({ error: new InternalServerError().message });
     });
   });
 
@@ -186,7 +186,7 @@ describe('Given the LoginController', () => {
       expect(response.statusCode).toBe(401);
     });
     test('Then I expect it returns the body with UnauthorizedError message', () => {
-      expect(response.body).toBe(new UnauthorizedError().message);
+      expect(response.body).toEqual({ error: new UnauthorizedError().message });
     });
   });
 

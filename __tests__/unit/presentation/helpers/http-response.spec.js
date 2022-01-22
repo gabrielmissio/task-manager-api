@@ -38,7 +38,7 @@ describe('Given the HttpResponse', () => {
       expect(response.statusCode).toBe(400);
     });
     test('Then I expect it returns the body with the provided error message', () => {
-      expect(response.body).toBe(error.message);
+      expect(response.body).toEqual({ error: error.message });
     });
   });
 
@@ -53,7 +53,7 @@ describe('Given the HttpResponse', () => {
       expect(response.statusCode).toBe(401);
     });
     test('Then I expect it returns the body with the UnauthorizedError message', () => {
-      expect(response.body).toBe(new UnauthorizedError().message);
+      expect(response.body).toEqual({ error: new UnauthorizedError().message });
     });
   });
 
@@ -68,7 +68,7 @@ describe('Given the HttpResponse', () => {
       expect(response.statusCode).toBe(500);
     });
     test('Then I expect it returns the body with the InternalServerError message', () => {
-      expect(response.body).toBe(new InternalServerError().message);
+      expect(response.body).toEqual({ error: new InternalServerError().message });
     });
   });
 
@@ -87,7 +87,7 @@ describe('Given the HttpResponse', () => {
         expect(response.statusCode).toBe(error.statusCode);
       });
       test('Then I expect it returns the body with the provided error message', () => {
-        expect(response.body).toBe(error.description);
+        expect(response.body).toEqual({ error: error.description });
       });
     });
 
@@ -101,7 +101,7 @@ describe('Given the HttpResponse', () => {
         expect(response.statusCode).toBe(500);
       });
       test('Then I expect it returns the body with InternalServerError message', () => {
-        expect(response.body).toBe(new InternalServerError().message);
+        expect(response.body).toEqual({ error: new InternalServerError().message });
       });
     });
   });

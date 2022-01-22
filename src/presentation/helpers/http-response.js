@@ -11,28 +11,30 @@ class HttpResponse {
   static badRequest(error) {
     return {
       statusCode: 400,
-      body: error.message
+      body: { error: error.message }
     };
   }
 
   static unauthorized() {
     return {
       statusCode: 401,
-      body: new UnauthorizedError().message
+      body: { error: new UnauthorizedError().message }
     };
   }
 
   static internalServerError() {
     return {
       statusCode: 500,
-      body: new InternalServerError().message
+      body: { error: new InternalServerError().message }
     };
   }
 
   static exceptionHandler(error) {
     return {
       statusCode: error.statusCode || 500,
-      body: error.description || new InternalServerError().message
+      body: {
+        error: error.description || new InternalServerError().message
+      }
     };
   }
 }
