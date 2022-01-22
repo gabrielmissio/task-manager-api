@@ -1,6 +1,6 @@
 const { RequestValidator } = require('../../../presentation/helpers');
-const { LoginController } = require('../../../presentation/validations/schemas');
+const { LoginControllerBodySchema } = require('../../../presentation/validations/schemas');
 
-const makeLoginControllerBodyValidator = () => new RequestValidator({ schema: LoginController });
+const makeLoginControllerBodyValidator = () => new RequestValidator({ schema: LoginControllerBodySchema });
 
 module.exports = makeLoginControllerBodyValidator;
