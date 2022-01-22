@@ -1,3 +1,5 @@
+const JWT = require('jsonwebtoken');
+
 const { MissingParamError } = require('../../../../src/utils/errors');
 
 class TokenGenerator {
@@ -5,9 +7,12 @@ class TokenGenerator {
     this.secret = secret;
   }
 
-  async generate() {
+  async generate({ value } = {}) {
     if (!this.secret) throw new MissingParamError('secret');
-    throw new MissingParamError('value');
+    if (!value) throw new MissingParamError('value');
+
+    const token = JWT.sign({ id: value }, this.secret);
+    return token;
   }
 }
 
@@ -33,6 +38,16 @@ describe('Given the TokenGenerator', () => {
       const promise = sut.generate();
 
       await expect(promise).rejects.toThrow(new MissingParamError('value'));
+    });
+  });
+
+  describe('And JWT returns null', () => {
+    test('Then I expect it returns null', async () => {
+      JWT.token = null;
+      const { sut } = makeSut();
+      const token = await sut.generate({ value: 'any_value' });
+
+      expect(token).toBeNull();
     });
   });
 });
