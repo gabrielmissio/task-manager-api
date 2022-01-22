@@ -1,6 +1,7 @@
 const Chance = require('chance');
 
 const PasswordGenerator = require('./password-generator');
+const { IdentifierGenerator } = require('../../src/infra/helpers');
 
 const dataFaker = new Chance();
 
@@ -19,6 +20,10 @@ class DataFakerHelper {
 
   static getEmail({ domain } = {}) {
     return dataFaker.email({ domain });
+  }
+
+  static getUUID() {
+    return IdentifierGenerator.newUUID();
   }
 
   static getPassword(
