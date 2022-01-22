@@ -1,10 +1,14 @@
+const bcryptjs = require('bcryptjs');
+
 const { MissingParamError } = require('../../../../src/utils/errors');
-const { DataFakerHelper } = require('../../../helpers');
 
 class Encrypter {
-  async compare({ value }) {
+  async compare({ value, hash }) {
     if (!value) throw new MissingParamError('value');
-    throw new MissingParamError('hash');
+    if (!hash) throw new MissingParamError('hash');
+
+    const isValid = await bcryptjs.compare(value, hash);
+    return isValid;
   }
 }
 
@@ -27,10 +31,20 @@ describe('Given the Encrypter', () => {
   describe('And no hash is provided', () => {
     test('Then I expect it throws a new MissingParamError', async () => {
       const { sut } = makeSut();
-      const params = { value: DataFakerHelper.getPassword() };
+      const params = { value: 'any_value' };
       const promise = sut.compare(params);
 
       await expect(promise).rejects.toThrow(new MissingParamError('hash'));
+    });
+  });
+
+  describe('And bcryptjs returns true', () => {
+    test('Then I expect it returns true', async () => {
+      const { sut } = makeSut();
+      const params = { value: 'any_value', hash: 'any_hash' };
+      const isValid = await sut.compare(params);
+
+      expect(isValid).toBe(true);
     });
   });
 });
