@@ -1,5 +1,5 @@
 const { InvalidRequestError, InternalServerError, UnauthorizedError } = require('../../../../src/presentation/errors');
-const { LoginRouter } = require('../../../../src/presentation/routers');
+const { LoginController } = require('../../../../src/presentation/controllers');
 
 const makeRequestValidatorSpy = () => {
   class RequestBodyValidatorSpy {
@@ -28,7 +28,7 @@ const makeSut = () => {
   const loginUseCaseSpy = makeLoginUseCaseSpy();
   requestBodyValidatorSpy.response = null;
   loginUseCaseSpy.response = 'any authentication model';
-  const sut = new LoginRouter({
+  const sut = new LoginController({
     requestBodyValidator: requestBodyValidatorSpy,
     loginUseCase: loginUseCaseSpy
   });
@@ -39,7 +39,7 @@ const makeSut = () => {
   };
 };
 
-describe('Given the LoginRouter', () => {
+describe('Given the LoginController', () => {
   describe('And no httpRequest is provided', () => {
     let response;
     beforeAll(async () => {
@@ -73,7 +73,7 @@ describe('Given the LoginRouter', () => {
   describe('And the requestBodyValidator dependency was not injected', () => {
     let response;
     beforeAll(async () => {
-      const sut = new LoginRouter();
+      const sut = new LoginController();
       response = await sut.handler({ body: {} });
     });
 
@@ -89,7 +89,7 @@ describe('Given the LoginRouter', () => {
   describe('And the requestBodyValidator dependency has no validate method', () => {
     let response;
     beforeAll(async () => {
-      const sut = new LoginRouter({ requestBodyValidator: {} });
+      const sut = new LoginController({ requestBodyValidator: {} });
       response = await sut.handler({ body: {} });
     });
 
@@ -134,7 +134,7 @@ describe('Given the LoginRouter', () => {
     let response;
     beforeAll(async () => {
       const { requestBodyValidatorSpy } = makeSut();
-      const sut = new LoginRouter({ requestBodyValidator: requestBodyValidatorSpy });
+      const sut = new LoginController({ requestBodyValidator: requestBodyValidatorSpy });
       response = await sut.handler({ body: {} });
     });
 
@@ -151,7 +151,7 @@ describe('Given the LoginRouter', () => {
     let response;
     beforeAll(async () => {
       const { requestBodyValidatorSpy } = makeSut();
-      const sut = new LoginRouter({ requestBodyValidator: requestBodyValidatorSpy, loginUseCase: {} });
+      const sut = new LoginController({ requestBodyValidator: requestBodyValidatorSpy, loginUseCase: {} });
       response = await sut.handler({ body: {} });
     });
 

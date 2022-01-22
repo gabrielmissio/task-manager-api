@@ -1,5 +1,5 @@
-const LoginRouterBodySchema = require('./login-router-body-schema');
+const LoginControllerBodySchema = require('./login-controller-body-schema');
 
 module.exports = {
-  LoginRouterBodySchema
+  LoginControllerBodySchema
 };

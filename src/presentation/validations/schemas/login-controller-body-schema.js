@@ -4,9 +4,9 @@ const {
   Commons: { emailValidation, passwordValidation }
 } = require('../helpers');
 
-const LoginRouterBodySchema = Joi.object({
+const LoginControllerBodySchema = Joi.object({
   email: emailValidation.required(),
   password: passwordValidation.required()
 });
 
-module.exports = LoginRouterBodySchema;
+module.exports = LoginControllerBodySchema;
