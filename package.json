@@ -38,6 +38,7 @@
   },
   "dependencies": {
     "aws-sdk": "2.1059.0",
+    "bcryptjs": "^2.4.3",
     "joi": "17.5.0"
   }
 }
