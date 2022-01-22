@@ -47,4 +47,15 @@ describe('Given the Encrypter', () => {
       expect(isValid).toBe(true);
     });
   });
+
+  describe('And bcryptjs returns false', () => {
+    test('Then I expect it returns false', async () => {
+      const { sut } = makeSut();
+      bcryptjs.isValid = false;
+      const params = { value: 'any_value', hash: 'any_hash' };
+      const isValid = await sut.compare(params);
+
+      expect(isValid).toBe(false);
+    });
+  });
 });
