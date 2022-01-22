@@ -7,7 +7,7 @@ class ExpressRouterAdapter {
         params: req.params
       };
 
-      const httpResponse = await router.route(httpRequest);
+      const httpResponse = await router.handler(httpRequest);
       return res.status(httpResponse.statusCode).json(httpResponse.body);
     };
   }
