@@ -2,7 +2,7 @@ const { HttpResponse } = require('../helpers');
 const { InvalidRequestError } = require('../errors');
 const { MissingParamError } = require('../../utils/errors');
 
-class LoginRouter {
+class LoginController {
   constructor({ requestBodyValidator, loginUseCase } = {}) {
     this.requestBodyValidator = requestBodyValidator;
     this.loginUseCase = loginUseCase;
@@ -26,4 +26,4 @@ class LoginRouter {
   }
 }
 
-module.exports = LoginRouter;
+module.exports = LoginController;

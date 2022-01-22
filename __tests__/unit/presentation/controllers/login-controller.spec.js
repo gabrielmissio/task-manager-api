@@ -1,5 +1,5 @@
 const { InvalidRequestError, InternalServerError, UnauthorizedError } = require('../../../../src/presentation/errors');
-const { LoginRouter } = require('../../../../src/presentation/routers');
+const { LoginController } = require('../../../../src/presentation/controllers');
 
 const makeRequestValidatorSpy = () => {
   class RequestBodyValidatorSpy {
@@ -12,34 +12,34 @@ const makeRequestValidatorSpy = () => {
   return new RequestBodyValidatorSpy();
 };
 
-const makeLoginUseCaseSpy = () => {
-  class LoginUseCaseSpy {
+const makeLoginServiceSpy = () => {
+  class LoginServiceSpy {
     async handler(params) {
       this.params = params;
       return this.response;
     }
   }
 
-  return new LoginUseCaseSpy();
+  return new LoginServiceSpy();
 };
 
 const makeSut = () => {
   const requestBodyValidatorSpy = makeRequestValidatorSpy();
-  const loginUseCaseSpy = makeLoginUseCaseSpy();
+  const loginServiceSpy = makeLoginServiceSpy();
   requestBodyValidatorSpy.response = null;
-  loginUseCaseSpy.response = 'any authentication model';
-  const sut = new LoginRouter({
+  loginServiceSpy.response = 'any authentication model';
+  const sut = new LoginController({
     requestBodyValidator: requestBodyValidatorSpy,
-    loginUseCase: loginUseCaseSpy
+    loginService: loginServiceSpy
   });
   return {
     sut,
     requestBodyValidatorSpy,
-    loginUseCaseSpy
+    loginServiceSpy
   };
 };
 
-describe('Given the LoginRouter', () => {
+describe('Given the LoginController', () => {
   describe('And no httpRequest is provided', () => {
     let response;
     beforeAll(async () => {
@@ -73,7 +73,7 @@ describe('Given the LoginRouter', () => {
   describe('And the requestBodyValidator dependency was not injected', () => {
     let response;
     beforeAll(async () => {
-      const sut = new LoginRouter();
+      const sut = new LoginController();
       response = await sut.handler({ body: {} });
     });
 
@@ -89,7 +89,7 @@ describe('Given the LoginRouter', () => {
   describe('And the requestBodyValidator dependency has no validate method', () => {
     let response;
     beforeAll(async () => {
-      const sut = new LoginRouter({ requestBodyValidator: {} });
+      const sut = new LoginController({ requestBodyValidator: {} });
       response = await sut.handler({ body: {} });
     });
 
@@ -130,11 +130,11 @@ describe('Given the LoginRouter', () => {
     });
   });
 
-  describe('And the loginUseCase dependency was not injected', () => {
+  describe('And the loginService dependency was not injected', () => {
     let response;
     beforeAll(async () => {
       const { requestBodyValidatorSpy } = makeSut();
-      const sut = new LoginRouter({ requestBodyValidator: requestBodyValidatorSpy });
+      const sut = new LoginController({ requestBodyValidator: requestBodyValidatorSpy });
       response = await sut.handler({ body: {} });
     });
 
@@ -147,11 +147,11 @@ describe('Given the LoginRouter', () => {
     });
   });
 
-  describe('And the loginUseCase dependency has no handler method', () => {
+  describe('And the loginService dependency has no handler method', () => {
     let response;
     beforeAll(async () => {
       const { requestBodyValidatorSpy } = makeSut();
-      const sut = new LoginRouter({ requestBodyValidator: requestBodyValidatorSpy, loginUseCase: {} });
+      const sut = new LoginController({ requestBodyValidator: requestBodyValidatorSpy, loginService: {} });
       response = await sut.handler({ body: {} });
     });
 
@@ -164,21 +164,21 @@ describe('Given the LoginRouter', () => {
     });
   });
 
-  describe('And the loginUseCase dependency was injected and has the handler method', () => {
-    test('Then I expect it calls the handler method from loginUseCase dependency with the expected params', async () => {
-      const { sut, loginUseCaseSpy } = makeSut();
+  describe('And the loginService dependency was injected and has the handler method', () => {
+    test('Then I expect it calls the handler method from loginService dependency with the expected params', async () => {
+      const { sut, loginServiceSpy } = makeSut();
       const requestBody = 'any_params';
 
       await sut.handler({ body: requestBody });
-      expect(loginUseCaseSpy.params).toBe(requestBody);
+      expect(loginServiceSpy.params).toBe(requestBody);
     });
   });
 
-  describe('And the handler method from loginUseCase dependency does not return any authenticationModel', () => {
+  describe('And the handler method from loginService dependency does not return any authenticationModel', () => {
     let response;
     beforeAll(async () => {
-      const { sut, loginUseCaseSpy } = makeSut();
-      loginUseCaseSpy.response = null;
+      const { sut, loginServiceSpy } = makeSut();
+      loginServiceSpy.response = null;
       response = await sut.handler({ body: {} });
     });
 
@@ -190,19 +190,19 @@ describe('Given the LoginRouter', () => {
     });
   });
 
-  describe('And the handler method from loginUseCase dependency returns a authenticationModel', () => {
+  describe('And the handler method from loginService dependency returns a authenticationModel', () => {
     let response;
-    let loginUseCaseResponse;
+    let loginServiceResponse;
     beforeAll(async () => {
-      const { sut, loginUseCaseSpy } = makeSut();
+      const { sut, loginServiceSpy } = makeSut();
       response = await sut.handler({ body: {} });
-      loginUseCaseResponse = loginUseCaseSpy.response;
+      loginServiceResponse = loginServiceSpy.response;
     });
     test('Then I expect it returns statusCode 200', () => {
       expect(response.statusCode).toBe(200);
     });
-    test('Then I expect it returns the body with the authenticationModel returned by handler method of the loginUseCase dependency', () => {
-      expect(response.body).toBe(loginUseCaseResponse);
+    test('Then I expect it returns the body with the authenticationModel returned by handler method of the loginService dependency', () => {
+      expect(response.body).toBe(loginServiceResponse);
     });
   });
 });
