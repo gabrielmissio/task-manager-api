@@ -1,17 +1,8 @@
 const bcryptjs = require('bcryptjs');
 
+const { Encrypter } = require('../../../../src/utils/helpers');
 const { MissingParamError } = require('../../../../src/utils/errors');
 const { DataFakerHelper } = require('../../../helpers');
-
-class Encrypter {
-  async compare({ value, hash }) {
-    if (!value) throw new MissingParamError('value');
-    if (!hash) throw new MissingParamError('hash');
-
-    const isValid = await bcryptjs.compare(value, hash);
-    return isValid;
-  }
-}
 
 const makeSut = () => {
   const sut = new Encrypter();
