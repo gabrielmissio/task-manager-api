@@ -38,7 +38,8 @@
   },
   "dependencies": {
     "aws-sdk": "2.1059.0",
-    "bcryptjs": "^2.4.3",
+    "bcryptjs": "2.4.3",
+    "express": "4.17.2",
     "joi": "17.5.0",
     "jsonwebtoken": "^8.5.1"
   }
