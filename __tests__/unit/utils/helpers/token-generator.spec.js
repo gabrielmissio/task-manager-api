@@ -1,6 +1,7 @@
 const JWT = require('jsonwebtoken');
 
 const { MissingParamError } = require('../../../../src/utils/errors');
+const { DataFakerHelper } = require('../../../helpers');
 
 class TokenGenerator {
   constructor({ secret } = {}) {
@@ -38,6 +39,17 @@ describe('Given the TokenGenerator', () => {
       const promise = sut.generate();
 
       await expect(promise).rejects.toThrow(new MissingParamError('value'));
+    });
+  });
+
+  describe('And calls sign method of JWT dependency', () => {
+    test('Then I expect it calls sign method with expected params', async () => {
+      const { sut } = makeSut();
+      const id = DataFakerHelper.getUUID();
+      await sut.generate({ value: id });
+
+      expect(JWT.value).toEqual({ id });
+      expect(JWT.secret).toBe(sut.secret);
     });
   });
 
