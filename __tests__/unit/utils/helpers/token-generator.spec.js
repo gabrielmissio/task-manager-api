@@ -50,4 +50,13 @@ describe('Given the TokenGenerator', () => {
       expect(token).toBeNull();
     });
   });
+
+  describe('And JWT returns a token', () => {
+    test('Then I expect it returns the token returned by the sign method of the JWT dependency', async () => {
+      const { sut } = makeSut();
+      const token = await sut.generate({ value: 'any_value' });
+
+      expect(token).toEqual(JWT.token);
+    });
+  });
 });
