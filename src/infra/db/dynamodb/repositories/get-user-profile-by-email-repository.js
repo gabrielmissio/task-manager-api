@@ -1,4 +1,5 @@
 const { DynamodbClient } = require('../helpers');
+const { UserProfileFactory } = require('../factories');
 const { MissingParamError } = require('../../../../utils/errors');
 const { TASK_MANAGER_TABLE_NAME } = require('../../../../main/confing/env');
 
@@ -10,7 +11,7 @@ class GetUserProfileByEmailRepository {
     const userNotFound = dynamodbResponse.Count < 1;
     if (userNotFound) return null;
 
-    const userProfile = this.buildUserProfile(dynamodbResponse.Items[0]);
+    const userProfile = UserProfileFactory.buildExistingUserProfile(dynamodbResponse.Items[0]);
     return userProfile;
   }
 
@@ -21,16 +22,6 @@ class GetUserProfileByEmailRepository {
       IndexName: 'email-index',
       KeyConditionExpression: 'email = :email',
       ExpressionAttributeValues: { ':email': email }
-    };
-  }
-
-  buildUserProfile(payload) {
-    return {
-      id: payload.PK.replace('USER#', ''),
-      name: payload.name,
-      email: payload.email,
-      password: payload.password,
-      createdAt: payload.createdAt
     };
   }
 }
