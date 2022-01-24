@@ -1,5 +1,5 @@
 const { MissingParamError } = require('../../../../src/utils/errors');
-const { InternalServerError } = require('../../../../src/presentation/errors');
+const { InternalServerError, InvalidRequestError } = require('../../../../src/presentation/errors');
 const { HttpResponse } = require('../../../../src/presentation/helpers');
 const { DataFakerHelper } = require('../../../helpers');
 
@@ -11,7 +11,11 @@ class GetBooksAndRelatedTasksController {
   async handler(httpRequest) {
     try {
       if (!httpRequest.params) throw new MissingParamError('params');
-      return this.requestParamsValidator.validate(httpRequest.params);
+
+      const errors = this.requestParamsValidator.validate(httpRequest.params);
+      if (errors) return HttpResponse.badRequest(new InvalidRequestError(errors));
+
+      return true;
     } catch (error) {
       console.log(error);
       return HttpResponse.exceptionHandler(error);
@@ -91,12 +95,30 @@ describe('Given the GetBooksAndRelatedTasksController', () => {
   });
 
   describe('And the requestParamsValidator dependency is injected and has the validate method', () => {
-    test('Then I expect it calls the validate method from requestParamsValidator dependency with the expected params', async () => {
+    test('Then I expect it calls the validate method of requestParamsValidator dependency with the expected params', async () => {
       const { sut, requestParamsValidatorSpy } = makeSut();
       const request = { params: DataFakerHelper.getUUID() };
 
       await sut.handler(request);
       expect(requestParamsValidatorSpy.params).toBe(request.params);
+    });
+  });
+
+  describe('And the validate method of requestParamsValidator dependency returns some error', () => {
+    let response;
+    const errorMessage = DataFakerHelper.getSentence({ words: 3 });
+
+    beforeAll(async () => {
+      const { sut, requestParamsValidatorSpy } = makeSut();
+      requestParamsValidatorSpy.response = errorMessage;
+      response = await sut.handler({ params: {} });
+    });
+
+    test('Then I expect it returns statusCode 400', () => {
+      expect(response.statusCode).toBe(400);
+    });
+    test('Then I expect it returns the body with a message indicating the error', () => {
+      expect(response.body).toEqual({ error: new InvalidRequestError(errorMessage).message });
     });
   });
 });
