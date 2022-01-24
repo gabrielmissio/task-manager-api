@@ -1,15 +1,17 @@
 const { MissingParamError } = require('../../../../src/utils/errors');
 const { InternalServerError } = require('../../../../src/presentation/errors');
 const { HttpResponse } = require('../../../../src/presentation/helpers');
+const { DataFakerHelper } = require('../../../helpers');
 
 class GetBooksAndRelatedTasksController {
   constructor({ requestParamsValidator } = {}) {
     this.requestParamsValidator = requestParamsValidator;
   }
 
-  async handler() {
+  async handler(httpRequest) {
     try {
-      throw new MissingParamError('params');
+      if (!httpRequest.params) throw new MissingParamError('params');
+      return this.requestParamsValidator.validate(httpRequest.params);
     } catch (error) {
       console.log(error);
       return HttpResponse.exceptionHandler(error);
@@ -17,10 +19,29 @@ class GetBooksAndRelatedTasksController {
   }
 }
 
-const makeSut = () => {
-  const sut = new GetBooksAndRelatedTasksController();
+const makeRequestParamsValidatorSpy = () => {
+  class RequestParamsValidatorSpy {
+    validate(params) {
+      this.params = params;
+      return this.response;
+    }
+  }
 
-  return { sut };
+  return new RequestParamsValidatorSpy();
+};
+
+const makeSut = () => {
+  const requestParamsValidatorSpy = makeRequestParamsValidatorSpy();
+  requestParamsValidatorSpy.response = null;
+
+  const sut = new GetBooksAndRelatedTasksController({
+    requestParamsValidator: requestParamsValidatorSpy
+  });
+
+  return {
+    sut,
+    requestParamsValidatorSpy
+  };
 };
 
 describe('Given the GetBooksAndRelatedTasksController', () => {
@@ -66,6 +87,16 @@ describe('Given the GetBooksAndRelatedTasksController', () => {
     });
     test('Then I expect it returns the body with InternalServerError message', () => {
       expect(response.body).toEqual({ error: new InternalServerError().message });
+    });
+  });
+
+  describe('And the requestParamsValidator dependency is injected and has the validate method', () => {
+    test('Then I expect it calls the validate method from requestParamsValidator dependency with the expected params', async () => {
+      const { sut, requestParamsValidatorSpy } = makeSut();
+      const request = { params: DataFakerHelper.getUUID() };
+
+      await sut.handler(request);
+      expect(requestParamsValidatorSpy.params).toBe(request.params);
     });
   });
 });
