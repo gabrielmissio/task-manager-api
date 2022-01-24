@@ -26,6 +26,22 @@ describe('Given the GetBooksAndRelatedTasksController', () => {
       const { sut } = makeSut();
       response = await sut.handler({});
     });
+
+    test('Then I expect it returns statusCode 500', async () => {
+      expect(response.statusCode).toBe(500);
+    });
+    test('Then I expect it returns the body with InternalServerError message', () => {
+      expect(response.body).toEqual({ error: new InternalServerError().message });
+    });
+  });
+
+  describe('And the requestPamasValidator dependency is not injected', () => {
+    let response;
+    beforeAll(async () => {
+      const { sut } = makeSut();
+      response = await sut.handler({ params: 'any_uuid' });
+    });
+
     test('Then I expect it returns statusCode 500', async () => {
       expect(response.statusCode).toBe(500);
     });
