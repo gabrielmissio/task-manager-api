@@ -16,7 +16,7 @@ class GetBooksAndRelatedTasksController {
       const errors = this.requestParamsValidator.validate(httpRequest.params);
       if (errors) return HttpResponse.badRequest(new InvalidRequestError(errors));
 
-      await this.checkIfUserExistsService.handler();
+      await this.checkIfUserExistsService.handler({ userId: httpRequest.params.userId });
       return true;
     } catch (error) {
       console.log(error);
@@ -86,7 +86,7 @@ describe('Given the GetBooksAndRelatedTasksController', () => {
     let response;
     beforeAll(async () => {
       const sut = new GetBooksAndRelatedTasksController();
-      response = await sut.handler({ params: 'any_uuid' });
+      response = await sut.handler({ params: { userId: 'any_uuid' } });
     });
 
     test('Then I expect it returns statusCode 500', async () => {
@@ -101,7 +101,7 @@ describe('Given the GetBooksAndRelatedTasksController', () => {
     let response;
     beforeAll(async () => {
       const sut = new GetBooksAndRelatedTasksController({ requestParamsValidator: {} });
-      response = await sut.handler({ params: 'any_uuid' });
+      response = await sut.handler({ params: { userId: 'any_uuid' } });
     });
 
     test('Then I expect it returns statusCode 500', async () => {
@@ -115,7 +115,7 @@ describe('Given the GetBooksAndRelatedTasksController', () => {
   describe('And the requestParamsValidator dependency is injected and has the validate method', () => {
     test('Then I expect it calls the validate method of requestParamsValidator dependency with the expected params', async () => {
       const { sut, requestParamsValidatorSpy } = makeSut();
-      const request = { params: DataFakerHelper.getUUID() };
+      const request = { params: { userId: DataFakerHelper.getUUID() } };
 
       await sut.handler(request);
       expect(requestParamsValidatorSpy.params).toBe(request.params);
@@ -145,7 +145,7 @@ describe('Given the GetBooksAndRelatedTasksController', () => {
     beforeAll(async () => {
       const { requestParamsValidatorSpy } = makeSut();
       const sut = new GetBooksAndRelatedTasksController({ requestParamsValidator: requestParamsValidatorSpy });
-      response = await sut.handler({ params: 'any_uuid' });
+      response = await sut.handler({ params: { userId: 'any_uuid' } });
     });
 
     test('Then I expect it returns statusCode 500', async () => {
@@ -164,7 +164,7 @@ describe('Given the GetBooksAndRelatedTasksController', () => {
         requestParamsValidator: requestParamsValidatorSpy,
         checkIfUserExistsService: {}
       });
-      response = await sut.handler({ params: 'any_uuid' });
+      response = await sut.handler({ params: { userId: 'any_uuid' } });
     });
 
     test('Then I expect it returns statusCode 500', async () => {
@@ -172,6 +172,16 @@ describe('Given the GetBooksAndRelatedTasksController', () => {
     });
     test('Then I expect it returns the body with InternalServerError message', () => {
       expect(response.body).toEqual({ error: new InternalServerError().message });
+    });
+  });
+
+  describe('And the checkIfUserExistsService dependency is injected and has the handler method', () => {
+    test('Then I expect it calls the handler method of checkIfUserExistsService dependency with the expected params', async () => {
+      const { sut, checkIfUserExistsServiceSpy } = makeSut();
+      const request = { params: { userId: DataFakerHelper.getUUID() } };
+
+      await sut.handler(request);
+      expect(checkIfUserExistsServiceSpy.params).toBe(request.params.userId);
     });
   });
 });
