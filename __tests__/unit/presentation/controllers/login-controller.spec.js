@@ -1,5 +1,6 @@
 const { InvalidRequestError, InternalServerError, UnauthorizedError } = require('../../../../src/presentation/errors');
 const { LoginController } = require('../../../../src/presentation/controllers');
+const { DataFakerHelper } = require('../../../helpers');
 
 const makeRequestValidatorSpy = () => {
   class RequestBodyValidatorSpy {
@@ -105,10 +106,10 @@ describe('Given the LoginController', () => {
   describe('And the requestBodyValidator dependency was injected and has the validate method', () => {
     test('Then I expect it calls the validate method from requestBodyValidator dependency with the expected params', async () => {
       const { sut, requestBodyValidatorSpy } = makeSut();
-      const requestBody = 'any_params';
+      const request = { body: DataFakerHelper.getString() };
 
-      await sut.handler({ body: requestBody });
-      expect(requestBodyValidatorSpy.params).toBe(requestBody);
+      await sut.handler(request);
+      expect(requestBodyValidatorSpy.params).toBe(request.body);
     });
   });
 
@@ -167,10 +168,10 @@ describe('Given the LoginController', () => {
   describe('And the loginService dependency was injected and has the handler method', () => {
     test('Then I expect it calls the handler method from loginService dependency with the expected params', async () => {
       const { sut, loginServiceSpy } = makeSut();
-      const requestBody = 'any_params';
+      const request = { body: DataFakerHelper.getString() };
 
-      await sut.handler({ body: requestBody });
-      expect(loginServiceSpy.params).toBe(requestBody);
+      await sut.handler(request);
+      expect(loginServiceSpy.params).toBe(request.body);
     });
   });
 
