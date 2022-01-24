@@ -19,7 +19,7 @@ describe(`Given the ${ROUTE} route`, () => {
         response = await request(app).post(ROUTE).send({});
       });
 
-      test('Then I expect it retuns statud code 400', async () => {
+      test('Then I expect it retuns status code 400', async () => {
         expect(response.status).toBe(400);
       });
     });
@@ -30,7 +30,7 @@ describe(`Given the ${ROUTE} route`, () => {
         response = await request(app).post(ROUTE).send({});
       });
 
-      test('Then I expect it retuns statud code 400', async () => {
+      test('Then I expect it retuns status code 400', async () => {
         expect(response.status).toBe(400);
       });
     });
@@ -41,7 +41,7 @@ describe(`Given the ${ROUTE} route`, () => {
         response = await request(app).post(ROUTE).send({});
       });
 
-      test('Then I expect it retuns statud code 400', async () => {
+      test('Then I expect it retuns status code 400', async () => {
         expect(response.status).toBe(400);
       });
     });
@@ -53,7 +53,7 @@ describe(`Given the ${ROUTE} route`, () => {
         response = await request(app).post(ROUTE).send(requestBody);
       });
 
-      test('Then I expect it retuns statud code 401', async () => {
+      test('Then I expect it retuns status code 401', async () => {
         expect(response.status).toBe(401);
       });
     });
@@ -72,6 +72,14 @@ describe(`Given the ${ROUTE} route`, () => {
 
       test('Then I expect it retuns statud code 200', async () => {
         expect(response.status).toBe(200);
+      });
+
+      test('Then I expect it returns the body with expected fields and types', async () => {
+        expect(response.body).toEqual({
+          id: expect.any(String),
+          email: expect.any(String),
+          accessToken: expect.any(String)
+        });
       });
     });
   });
