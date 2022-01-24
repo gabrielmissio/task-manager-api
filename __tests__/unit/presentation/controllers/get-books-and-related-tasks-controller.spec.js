@@ -4,8 +4,9 @@ const { HttpResponse } = require('../../../../src/presentation/helpers');
 const { DataFakerHelper } = require('../../../helpers');
 
 class GetBooksAndRelatedTasksController {
-  constructor({ requestParamsValidator } = {}) {
+  constructor({ requestParamsValidator, checkIfUserExistsService } = {}) {
     this.requestParamsValidator = requestParamsValidator;
+    this.checkIfUserExistsService = checkIfUserExistsService;
   }
 
   async handler(httpRequest) {
@@ -35,17 +36,33 @@ const makeRequestParamsValidatorSpy = () => {
   return new RequestParamsValidatorSpy();
 };
 
+const makeCheckIfUserExistsServiceSpy = () => {
+  class CheckIfUserExistsServiceSpy {
+    handler({ userId }) {
+      this.params = userId;
+      return this.response;
+    }
+  }
+
+  return new CheckIfUserExistsServiceSpy();
+};
+
 const makeSut = () => {
   const requestParamsValidatorSpy = makeRequestParamsValidatorSpy();
   requestParamsValidatorSpy.response = null;
 
+  const checkIfUserExistsServiceSpy = makeCheckIfUserExistsServiceSpy();
+  this.response = DataFakerHelper.getObject();
+
   const sut = new GetBooksAndRelatedTasksController({
-    requestParamsValidator: requestParamsValidatorSpy
+    requestParamsValidator: requestParamsValidatorSpy,
+    checkIfUserExistsService: checkIfUserExistsServiceSpy
   });
 
   return {
     sut,
-    requestParamsValidatorSpy
+    requestParamsValidatorSpy,
+    checkIfUserExistsServiceSpy
   };
 };
 
@@ -128,6 +145,25 @@ describe('Given the GetBooksAndRelatedTasksController', () => {
     beforeAll(async () => {
       const { requestParamsValidatorSpy } = makeSut();
       const sut = new GetBooksAndRelatedTasksController({ requestParamsValidator: requestParamsValidatorSpy });
+      response = await sut.handler({ params: 'any_uuid' });
+    });
+
+    test('Then I expect it returns statusCode 500', async () => {
+      expect(response.statusCode).toBe(500);
+    });
+    test('Then I expect it returns the body with InternalServerError message', () => {
+      expect(response.body).toEqual({ error: new InternalServerError().message });
+    });
+  });
+
+  describe('And the checkIfUserExistsService dependency has no handler method', () => {
+    let response;
+    beforeAll(async () => {
+      const { requestParamsValidatorSpy } = makeSut();
+      const sut = new GetBooksAndRelatedTasksController({
+        requestParamsValidator: requestParamsValidatorSpy,
+        checkIfUserExistsService: {}
+      });
       response = await sut.handler({ params: 'any_uuid' });
     });
 
