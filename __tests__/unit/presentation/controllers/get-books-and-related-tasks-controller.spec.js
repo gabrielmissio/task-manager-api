@@ -15,6 +15,7 @@ class GetBooksAndRelatedTasksController {
       const errors = this.requestParamsValidator.validate(httpRequest.params);
       if (errors) return HttpResponse.badRequest(new InvalidRequestError(errors));
 
+      await this.checkIfUserExistsService.handler();
       return true;
     } catch (error) {
       console.log(error);
@@ -119,6 +120,22 @@ describe('Given the GetBooksAndRelatedTasksController', () => {
     });
     test('Then I expect it returns the body with a message indicating the error', () => {
       expect(response.body).toEqual({ error: new InvalidRequestError(errorMessage).message });
+    });
+  });
+
+  describe('And the checkIfUserExistsService dependency is not injected', () => {
+    let response;
+    beforeAll(async () => {
+      const { requestParamsValidatorSpy } = makeSut();
+      const sut = new GetBooksAndRelatedTasksController({ requestParamsValidator: requestParamsValidatorSpy });
+      response = await sut.handler({ params: 'any_uuid' });
+    });
+
+    test('Then I expect it returns statusCode 500', async () => {
+      expect(response.statusCode).toBe(500);
+    });
+    test('Then I expect it returns the body with InternalServerError message', () => {
+      expect(response.body).toEqual({ error: new InternalServerError().message });
     });
   });
 });
