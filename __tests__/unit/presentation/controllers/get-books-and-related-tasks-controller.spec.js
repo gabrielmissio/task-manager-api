@@ -7,9 +7,9 @@ const {
 const { DataFakerHelper } = require('../../../helpers');
 
 class GetBooksAndRelatedTasksController {
-  constructor({ requestParamsValidator, checkIfUserExistsService } = {}) {
+  constructor({ requestParamsValidator, getBooksAndRelatedTasksService } = {}) {
     this.requestParamsValidator = requestParamsValidator;
-    this.checkIfUserExistsService = checkIfUserExistsService;
+    this.getBooksAndRelatedTasksService = getBooksAndRelatedTasksService;
   }
 
   async handler(httpRequest) {
@@ -19,8 +19,12 @@ class GetBooksAndRelatedTasksController {
       const errors = this.requestParamsValidator.validate(httpRequest.params);
       if (errors) return HttpResponse.badRequest(new InvalidRequestError(errors));
 
-      const exists = await this.checkIfUserExistsService.handler({ userId: httpRequest.params.userId });
-      if (!exists) return HttpResponse.notFound(new NotFoundError(USER_NOT_FOUND));
+      // const isAllowed = checkIfRequestUserIsAllowedService.handler();
+
+      const booksAndRelatedTasksModel = await this.getBooksAndRelatedTasksService.handler({
+        userId: httpRequest.params.userId
+      });
+      if (!booksAndRelatedTasksModel) return HttpResponse.notFound(new NotFoundError(USER_NOT_FOUND));
 
       return true;
     } catch (error) {
@@ -41,33 +45,33 @@ const makeRequestParamsValidatorSpy = () => {
   return new RequestParamsValidatorSpy();
 };
 
-const makeCheckIfUserExistsServiceSpy = () => {
-  class CheckIfUserExistsServiceSpy {
+const makeGetBooksAndRelatedTasksServiceSpy = () => {
+  class GetBooksAndRelatedTasksServiceSpy {
     async handler({ userId }) {
       this.params = userId;
       return this.response;
     }
   }
 
-  return new CheckIfUserExistsServiceSpy();
+  return new GetBooksAndRelatedTasksServiceSpy();
 };
 
 const makeSut = () => {
   const requestParamsValidatorSpy = makeRequestParamsValidatorSpy();
   requestParamsValidatorSpy.response = null;
 
-  const checkIfUserExistsServiceSpy = makeCheckIfUserExistsServiceSpy();
+  const getBooksAndRelatedTasksServiceSpy = makeGetBooksAndRelatedTasksServiceSpy();
   this.response = DataFakerHelper.getObject();
 
   const sut = new GetBooksAndRelatedTasksController({
     requestParamsValidator: requestParamsValidatorSpy,
-    checkIfUserExistsService: checkIfUserExistsServiceSpy
+    getBooksAndRelatedTasksService: getBooksAndRelatedTasksServiceSpy
   });
 
   return {
     sut,
     requestParamsValidatorSpy,
-    checkIfUserExistsServiceSpy
+    getBooksAndRelatedTasksServiceSpy
   };
 };
 
@@ -145,7 +149,7 @@ describe('Given the GetBooksAndRelatedTasksController', () => {
     });
   });
 
-  describe('And the checkIfUserExistsService dependency is not injected', () => {
+  describe('And the getBooksAndRelatedTasksService dependency is not injected', () => {
     let response;
     beforeAll(async () => {
       const { requestParamsValidatorSpy } = makeSut();
@@ -161,13 +165,13 @@ describe('Given the GetBooksAndRelatedTasksController', () => {
     });
   });
 
-  describe('And the checkIfUserExistsService dependency has no handler method', () => {
+  describe('And the getBooksAndRelatedTasksService dependency has no handler method', () => {
     let response;
     beforeAll(async () => {
       const { requestParamsValidatorSpy } = makeSut();
       const sut = new GetBooksAndRelatedTasksController({
         requestParamsValidator: requestParamsValidatorSpy,
-        checkIfUserExistsService: {}
+        getBooksAndRelatedTasksService: {}
       });
       response = await sut.handler({ params: { userId: 'any_uuid' } });
     });
@@ -180,17 +184,17 @@ describe('Given the GetBooksAndRelatedTasksController', () => {
     });
   });
 
-  describe('And the checkIfUserExistsService dependency is injected and has the handler method', () => {
-    test('Then I expect it calls the handler method of checkIfUserExistsService dependency with the expected params', async () => {
-      const { sut, checkIfUserExistsServiceSpy } = makeSut();
+  describe('And the getBooksAndRelatedTasksService dependency is injected and has the handler method', () => {
+    test('Then I expect it calls the handler method of getBooksAndRelatedTasksService dependency with the expected params', async () => {
+      const { sut, getBooksAndRelatedTasksServiceSpy } = makeSut();
       const request = { params: { userId: DataFakerHelper.getUUID() } };
 
       await sut.handler(request);
-      expect(checkIfUserExistsServiceSpy.params).toBe(request.params.userId);
+      expect(getBooksAndRelatedTasksServiceSpy.params).toBe(request.params.userId);
     });
   });
 
-  describe('And the handler method of checkIfUserExistsService dependency returns null', () => {
+  describe('And the handler method of getBooksAndRelatedTasksService dependency returns null', () => {
     let response;
 
     beforeAll(async () => {
