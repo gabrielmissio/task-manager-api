@@ -1,6 +1,9 @@
 const { MissingParamError } = require('../../../../src/utils/errors');
-const { InternalServerError, InvalidRequestError } = require('../../../../src/presentation/errors');
+const { InternalServerError, InvalidRequestError, NotFoundError } = require('../../../../src/presentation/errors');
 const { HttpResponse } = require('../../../../src/presentation/helpers');
+const {
+  ErrorMessagesEnum: { USER_NOT_FOUND }
+} = require('../../../../src/utils/enums');
 const { DataFakerHelper } = require('../../../helpers');
 
 class GetBooksAndRelatedTasksController {
@@ -16,7 +19,9 @@ class GetBooksAndRelatedTasksController {
       const errors = this.requestParamsValidator.validate(httpRequest.params);
       if (errors) return HttpResponse.badRequest(new InvalidRequestError(errors));
 
-      await this.checkIfUserExistsService.handler({ userId: httpRequest.params.userId });
+      const exists = await this.checkIfUserExistsService.handler({ userId: httpRequest.params.userId });
+      if (!exists) return HttpResponse.notFound(new NotFoundError(USER_NOT_FOUND));
+
       return true;
     } catch (error) {
       console.log(error);
@@ -38,7 +43,7 @@ const makeRequestParamsValidatorSpy = () => {
 
 const makeCheckIfUserExistsServiceSpy = () => {
   class CheckIfUserExistsServiceSpy {
-    handler({ userId }) {
+    async handler({ userId }) {
       this.params = userId;
       return this.response;
     }
@@ -182,6 +187,22 @@ describe('Given the GetBooksAndRelatedTasksController', () => {
 
       await sut.handler(request);
       expect(checkIfUserExistsServiceSpy.params).toBe(request.params.userId);
+    });
+  });
+
+  describe('And the handler method of checkIfUserExistsService dependency returns null', () => {
+    let response;
+
+    beforeAll(async () => {
+      const { sut } = makeSut();
+      response = await sut.handler({ params: {} });
+    });
+
+    test('Then I expect it returns statusCode 404', () => {
+      expect(response.statusCode).toBe(404);
+    });
+    test('Then I expect it returns the body with a message indicating the error', () => {
+      expect(response.body).toEqual({ error: new NotFoundError(USER_NOT_FOUND).message });
     });
   });
 });
