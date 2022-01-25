@@ -1,5 +1,10 @@
 const { MissingParamError } = require('../../../../src/utils/errors');
-const { InternalServerError, InvalidRequestError, NotFoundError } = require('../../../../src/presentation/errors');
+const {
+  InternalServerError,
+  InvalidRequestError,
+  NotFoundError,
+  ForbiddenError
+} = require('../../../../src/presentation/errors');
 const { HttpResponse } = require('../../../../src/presentation/helpers');
 const {
   ErrorMessagesEnum: { USER_NOT_FOUND }
@@ -20,10 +25,11 @@ class GetBooksAndRelatedTasksController {
       const errors = this.requestParamsValidator.validate(httpRequest.params);
       if (errors) return HttpResponse.badRequest(new InvalidRequestError(errors));
 
-      this.checkIfRequestIsAllowedService.handler({
+      const isAllowed = this.checkIfRequestIsAllowedService.handler({
         userId: httpRequest.params.userId,
         authorization: httpRequest.headers.authorization
       });
+      if (!isAllowed) return HttpResponse.forbidden();
 
       const booksAndRelatedTasksModel = await this.getBooksAndRelatedTasksService.handler({
         userId: httpRequest.params.userId
@@ -216,6 +222,23 @@ describe('Given the GetBooksAndRelatedTasksController', () => {
       await sut.handler(request);
       expect(checkIfRequestIsAllowedServiceSpy.params.userId).toBe(request.params.userId);
       expect(checkIfRequestIsAllowedServiceSpy.params.authorization).toBe(request.headers.authorization);
+    });
+  });
+
+  describe('And the handler method of checkIfRequestIsAllowedService dependency returns false', () => {
+    let response;
+
+    beforeAll(async () => {
+      const { sut, checkIfRequestIsAllowedServiceSpy } = makeSut();
+      checkIfRequestIsAllowedServiceSpy.response = false;
+      response = await sut.handler({ params: {}, headers: {} });
+    });
+
+    test('Then I expect it returns statusCode 403', () => {
+      expect(response.statusCode).toBe(403);
+    });
+    test('Then I expect it returns the body with a message indicating the error', () => {
+      expect(response.body).toEqual({ error: new ForbiddenError().message });
     });
   });
 
