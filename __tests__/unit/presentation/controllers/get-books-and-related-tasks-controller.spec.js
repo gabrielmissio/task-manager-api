@@ -183,6 +183,25 @@ describe('Given the GetBooksAndRelatedTasksController', () => {
     });
   });
 
+  describe('And the checkIfRequestIsAllowedService dependency has no handler method', () => {
+    let response;
+    beforeAll(async () => {
+      const { requestParamsValidatorSpy } = makeSut();
+      const sut = new GetBooksAndRelatedTasksController({
+        requestParamsValidator: requestParamsValidatorSpy,
+        checkIfRequestIsAllowedService: {}
+      });
+      response = await sut.handler({ params: { userId: 'any_uuid' } });
+    });
+
+    test('Then I expect it returns statusCode 500', async () => {
+      expect(response.statusCode).toBe(500);
+    });
+    test('Then I expect it returns the body with InternalServerError message', () => {
+      expect(response.body).toEqual({ error: new InternalServerError().message });
+    });
+  });
+
   describe('And the getBooksAndRelatedTasksService dependency is not injected', () => {
     let response;
     beforeAll(async () => {
