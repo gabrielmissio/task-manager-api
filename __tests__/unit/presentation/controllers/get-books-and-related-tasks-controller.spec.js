@@ -20,7 +20,10 @@ class GetBooksAndRelatedTasksController {
       const errors = this.requestParamsValidator.validate(httpRequest.params);
       if (errors) return HttpResponse.badRequest(new InvalidRequestError(errors));
 
-      this.checkIfRequestIsAllowedService.handler();
+      this.checkIfRequestIsAllowedService.handler({
+        userId: httpRequest.params.userId,
+        authorization: httpRequest.headers.authorization
+      });
 
       const booksAndRelatedTasksModel = await this.getBooksAndRelatedTasksService.handler({
         userId: httpRequest.params.userId
@@ -48,7 +51,8 @@ const makeRequestParamsValidatorSpy = () => {
 
 const makeCheckIfRequestIsAllowedServiceSpy = () => {
   class CheckIfRequestIsAllowedServiceSpy {
-    handler() {
+    handler({ userId, authorization }) {
+      this.params = { userId, authorization };
       return this.response;
     }
   }
@@ -202,6 +206,19 @@ describe('Given the GetBooksAndRelatedTasksController', () => {
     });
   });
 
+  describe('And the checkIfRequestIsAllowedService dependency is injected and has the handler method', () => {
+    test('Then I expect it calls the handler method of checkIfRequestIsAllowedService dependency with the expected params', async () => {
+      const { sut, checkIfRequestIsAllowedServiceSpy } = makeSut();
+      const request = {
+        params: { userId: DataFakerHelper.getUUID() },
+        headers: { authorization: DataFakerHelper.getString() }
+      };
+      await sut.handler(request);
+      expect(checkIfRequestIsAllowedServiceSpy.params.userId).toBe(request.params.userId);
+      expect(checkIfRequestIsAllowedServiceSpy.params.authorization).toBe(request.headers.authorization);
+    });
+  });
+
   describe('And the getBooksAndRelatedTasksService dependency is not injected', () => {
     let response;
     beforeAll(async () => {
@@ -244,7 +261,7 @@ describe('Given the GetBooksAndRelatedTasksController', () => {
   describe('And the getBooksAndRelatedTasksService dependency is injected and has the handler method', () => {
     test('Then I expect it calls the handler method of getBooksAndRelatedTasksService dependency with the expected params', async () => {
       const { sut, getBooksAndRelatedTasksServiceSpy } = makeSut();
-      const request = { params: { userId: DataFakerHelper.getUUID() } };
+      const request = { params: { userId: DataFakerHelper.getUUID() }, headers: {} };
 
       await sut.handler(request);
       expect(getBooksAndRelatedTasksServiceSpy.params).toBe(request.params.userId);
@@ -257,7 +274,7 @@ describe('Given the GetBooksAndRelatedTasksController', () => {
     beforeAll(async () => {
       const { sut, getBooksAndRelatedTasksServiceSpy } = makeSut();
       getBooksAndRelatedTasksServiceSpy.response = null;
-      response = await sut.handler({ params: {} });
+      response = await sut.handler({ params: {}, headers: {} });
     });
 
     test('Then I expect it returns statusCode 404', () => {
