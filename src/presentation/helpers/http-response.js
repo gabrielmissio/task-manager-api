@@ -1,4 +1,4 @@
-const { InternalServerError, UnauthorizedError } = require('../errors');
+const { InternalServerError, UnauthorizedError, ForbiddenError } = require('../errors');
 
 class HttpResponse {
   static ok(data) {
@@ -19,6 +19,20 @@ class HttpResponse {
     return {
       statusCode: 401,
       body: { error: new UnauthorizedError().message }
+    };
+  }
+
+  static forbidden() {
+    return {
+      statusCode: 403,
+      body: { error: new ForbiddenError().message }
+    };
+  }
+
+  static notFound(error) {
+    return {
+      statusCode: 404,
+      body: { error: error.message }
     };
   }
 
