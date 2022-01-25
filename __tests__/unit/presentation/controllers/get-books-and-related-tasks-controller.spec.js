@@ -7,8 +7,9 @@ const {
 const { DataFakerHelper } = require('../../../helpers');
 
 class GetBooksAndRelatedTasksController {
-  constructor({ requestParamsValidator, getBooksAndRelatedTasksService } = {}) {
+  constructor({ requestParamsValidator, checkIfRequestIsAllowedService, getBooksAndRelatedTasksService } = {}) {
     this.requestParamsValidator = requestParamsValidator;
+    this.checkIfRequestIsAllowedService = checkIfRequestIsAllowedService;
     this.getBooksAndRelatedTasksService = getBooksAndRelatedTasksService;
   }
 
@@ -19,7 +20,7 @@ class GetBooksAndRelatedTasksController {
       const errors = this.requestParamsValidator.validate(httpRequest.params);
       if (errors) return HttpResponse.badRequest(new InvalidRequestError(errors));
 
-      // const isAllowed = checkIfRequestUserIsAllowedService.handler();
+      this.checkIfRequestIsAllowedService.handler();
 
       const booksAndRelatedTasksModel = await this.getBooksAndRelatedTasksService.handler({
         userId: httpRequest.params.userId
@@ -45,6 +46,16 @@ const makeRequestParamsValidatorSpy = () => {
   return new RequestParamsValidatorSpy();
 };
 
+const makeCheckIfRequestIsAllowedServiceSpy = () => {
+  class CheckIfRequestIsAllowedServiceSpy {
+    handler() {
+      return this.response;
+    }
+  }
+
+  return new CheckIfRequestIsAllowedServiceSpy();
+};
+
 const makeGetBooksAndRelatedTasksServiceSpy = () => {
   class GetBooksAndRelatedTasksServiceSpy {
     async handler({ userId }) {
@@ -60,17 +71,22 @@ const makeSut = () => {
   const requestParamsValidatorSpy = makeRequestParamsValidatorSpy();
   requestParamsValidatorSpy.response = null;
 
+  const checkIfRequestIsAllowedServiceSpy = makeCheckIfRequestIsAllowedServiceSpy();
+  checkIfRequestIsAllowedServiceSpy.response = true;
+
   const getBooksAndRelatedTasksServiceSpy = makeGetBooksAndRelatedTasksServiceSpy();
-  this.response = DataFakerHelper.getObject();
+  getBooksAndRelatedTasksServiceSpy.response = DataFakerHelper.getObject();
 
   const sut = new GetBooksAndRelatedTasksController({
     requestParamsValidator: requestParamsValidatorSpy,
+    checkIfRequestIsAllowedService: checkIfRequestIsAllowedServiceSpy,
     getBooksAndRelatedTasksService: getBooksAndRelatedTasksServiceSpy
   });
 
   return {
     sut,
     requestParamsValidatorSpy,
+    checkIfRequestIsAllowedServiceSpy,
     getBooksAndRelatedTasksServiceSpy
   };
 };
@@ -149,11 +165,32 @@ describe('Given the GetBooksAndRelatedTasksController', () => {
     });
   });
 
-  describe('And the getBooksAndRelatedTasksService dependency is not injected', () => {
+  describe('And the checkIfRequestIsAllowedService dependency is not injected', () => {
     let response;
     beforeAll(async () => {
       const { requestParamsValidatorSpy } = makeSut();
-      const sut = new GetBooksAndRelatedTasksController({ requestParamsValidator: requestParamsValidatorSpy });
+      const sut = new GetBooksAndRelatedTasksController({
+        requestParamsValidator: requestParamsValidatorSpy
+      });
+      response = await sut.handler({ params: { userId: 'any_uuid' } });
+    });
+
+    test('Then I expect it returns statusCode 500', async () => {
+      expect(response.statusCode).toBe(500);
+    });
+    test('Then I expect it returns the body with InternalServerError message', () => {
+      expect(response.body).toEqual({ error: new InternalServerError().message });
+    });
+  });
+
+  describe('And the getBooksAndRelatedTasksService dependency is not injected', () => {
+    let response;
+    beforeAll(async () => {
+      const { requestParamsValidatorSpy, checkIfRequestIsAllowedServiceSpy } = makeSut();
+      const sut = new GetBooksAndRelatedTasksController({
+        requestParamsValidator: requestParamsValidatorSpy,
+        checkIfRequestIsAllowedService: checkIfRequestIsAllowedServiceSpy
+      });
       response = await sut.handler({ params: { userId: 'any_uuid' } });
     });
 
@@ -168,9 +205,10 @@ describe('Given the GetBooksAndRelatedTasksController', () => {
   describe('And the getBooksAndRelatedTasksService dependency has no handler method', () => {
     let response;
     beforeAll(async () => {
-      const { requestParamsValidatorSpy } = makeSut();
+      const { requestParamsValidatorSpy, checkIfRequestIsAllowedServiceSpy } = makeSut();
       const sut = new GetBooksAndRelatedTasksController({
         requestParamsValidator: requestParamsValidatorSpy,
+        checkIfRequestIsAllowedService: checkIfRequestIsAllowedServiceSpy,
         getBooksAndRelatedTasksService: {}
       });
       response = await sut.handler({ params: { userId: 'any_uuid' } });
@@ -198,7 +236,8 @@ describe('Given the GetBooksAndRelatedTasksController', () => {
     let response;
 
     beforeAll(async () => {
-      const { sut } = makeSut();
+      const { sut, getBooksAndRelatedTasksServiceSpy } = makeSut();
+      getBooksAndRelatedTasksServiceSpy.response = null;
       response = await sut.handler({ params: {} });
     });
 
