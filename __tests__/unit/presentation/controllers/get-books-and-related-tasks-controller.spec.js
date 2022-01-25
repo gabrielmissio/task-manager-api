@@ -36,7 +36,7 @@ class GetBooksAndRelatedTasksController {
       });
       if (!booksAndRelatedTasksModel) return HttpResponse.notFound(new NotFoundError(USER_NOT_FOUND));
 
-      return true;
+      return HttpResponse.ok(booksAndRelatedTasksModel);
     } catch (error) {
       console.log(error);
       return HttpResponse.exceptionHandler(error);
@@ -305,6 +305,22 @@ describe('Given the GetBooksAndRelatedTasksController', () => {
     });
     test('Then I expect it returns the body with a message indicating the error', () => {
       expect(response.body).toEqual({ error: new NotFoundError(USER_NOT_FOUND).message });
+    });
+  });
+
+  describe('And the handler method of getBooksAndRelatedTasksService dependency returns a booksAndRelatedTasksModel', () => {
+    let response;
+    let getBooksAndRelatedTasksServiceResponse;
+    beforeAll(async () => {
+      const { sut, getBooksAndRelatedTasksServiceSpy } = makeSut();
+      response = await sut.handler({ params: {}, headers: {} });
+      getBooksAndRelatedTasksServiceResponse = getBooksAndRelatedTasksServiceSpy.response;
+    });
+    test('Then I expect it returns statusCode 200', () => {
+      expect(response.statusCode).toBe(200);
+    });
+    test('Then I expect it returns the body with the booksAndRelatedTasksModel returned by handler method of the getBooksAndRelatedTasksService dependency', () => {
+      expect(response.body).toBe(getBooksAndRelatedTasksServiceResponse);
     });
   });
 });
