@@ -57,6 +57,22 @@ describe('Given the HttpResponse', () => {
     });
   });
 
+  describe('And the notFound method is called', () => {
+    let response;
+    const error = { message: DataFakerHelper.getString() };
+    beforeAll(() => {
+      const { sut } = makeSut();
+      response = sut.notFound(error);
+    });
+
+    test('Then I expect it returns statusCode 404', () => {
+      expect(response.statusCode).toBe(404);
+    });
+    test('Then I expect it returns the body with the provided error message', () => {
+      expect(response.body).toEqual({ error: error.message });
+    });
+  });
+
   describe('And the internalServerError method is called', () => {
     let response;
     beforeAll(() => {

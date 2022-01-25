@@ -22,6 +22,13 @@ class HttpResponse {
     };
   }
 
+  static notFound(error) {
+    return {
+      statusCode: 404,
+      body: { error: error.message }
+    };
+  }
+
   static internalServerError() {
     return {
       statusCode: 500,
