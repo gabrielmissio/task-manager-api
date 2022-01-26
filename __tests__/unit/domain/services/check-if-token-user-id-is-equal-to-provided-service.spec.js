@@ -1,4 +1,5 @@
 const { MissingParamError } = require('../../../../src/utils/errors');
+const { DataFakerHelper } = require('../../../helpers');
 
 class CheckIfTokenUserIdIsEqualToProvidedService {
   constructor({ tokenDecoder } = {}) {
@@ -9,14 +10,31 @@ class CheckIfTokenUserIdIsEqualToProvidedService {
     if (!userId) throw new MissingParamError('userId');
     if (!token) throw new MissingParamError('token');
 
-    this.tokenDecoder.decode();
+    this.tokenDecoder.decode({ token });
   }
 }
 
-const makeSut = () => {
-  const sut = new CheckIfTokenUserIdIsEqualToProvidedService();
+const makeTokenDecoderSpy = () => {
+  class TokenDecoderSpy {
+    decode({ token }) {
+      this.params = token;
+      return this.response;
+    }
+  }
 
-  return { sut };
+  return new TokenDecoderSpy();
+};
+
+const makeSut = () => {
+  const tokenDecoderSpy = makeTokenDecoderSpy();
+  tokenDecoderSpy.response = DataFakerHelper.getObject();
+
+  const sut = new CheckIfTokenUserIdIsEqualToProvidedService({ tokenDecoder: tokenDecoderSpy });
+
+  return {
+    sut,
+    tokenDecoderSpy
+  };
 };
 
 describe('Given the CheckIfTokenUserIdIsEqualToProvidedService', () => {
@@ -65,6 +83,20 @@ describe('Given the CheckIfTokenUserIdIsEqualToProvidedService', () => {
       const response = () => sut.handler(params);
 
       expect(response).toThrow(new Error('this.tokenDecoder.decode is not a function'));
+    });
+  });
+
+  describe('And the tokenDecoder dependency is injected and has decode method', () => {
+    test('Then I expect it calls decode method of tokenDecoder  dependency with the expected params', () => {
+      const { sut, tokenDecoderSpy } = makeSut();
+      const params = {
+        userId: 'any_id',
+        token: DataFakerHelper.getString()
+      };
+
+      sut.handler(params);
+
+      expect(tokenDecoderSpy.params).toBe(params.token);
     });
   });
 });
