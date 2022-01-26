@@ -1,21 +1,6 @@
 const { MissingParamError, InvalidParamError } = require('../../../../src/utils/errors');
-const { TokenGenerator } = require('../../../../src/utils/helpers');
+const { TokenGenerator, TokenDecoder } = require('../../../../src/utils/helpers');
 const { DataFakerHelper } = require('../../../helpers');
-
-class TokenDecoder {
-  decode({ token } = {}) {
-    if (!token) throw new MissingParamError('token');
-
-    const splitedToken = token.split('.');
-    const isValid = splitedToken.length === 3;
-    if (!isValid) throw new InvalidParamError('token');
-
-    const base64Payload = splitedToken[1].replace('-', '+').replace('_', '/');
-    const decodedPayload = JSON.parse(Buffer.from(base64Payload, 'base64').toString('binary'));
-
-    return decodedPayload;
-  }
-}
 
 jest.unmock('jsonwebtoken');
 
