@@ -25,6 +25,17 @@ const makeTokenDecoderSpy = () => {
   return new TokenDecoderSpy();
 };
 
+const makeTokenDecoderSpyWithError = () => {
+  class TokenDecoderSpyWithError {
+    decode() {
+      this.error = DataFakerHelper.getSentence({ words: 3 });
+      throw new Error(this.error);
+    }
+  }
+
+  return new TokenDecoderSpyWithError();
+};
+
 const makeSut = () => {
   const tokenDecoderSpy = makeTokenDecoderSpy();
   tokenDecoderSpy.response = DataFakerHelper.getObject();
@@ -97,6 +108,21 @@ describe('Given the CheckIfTokenUserIdIsEqualToProvidedService', () => {
       sut.handler(params);
 
       expect(tokenDecoderSpy.params).toBe(params.token);
+    });
+  });
+
+  describe('And the decode method of tokenDecoder dependency throws an error', () => {
+    test('Then I expect it throws an error', () => {
+      const tokenDecoderSpyWithError = makeTokenDecoderSpyWithError();
+      const sut = new CheckIfTokenUserIdIsEqualToProvidedService({ tokenDecoder: tokenDecoderSpyWithError });
+      const params = {
+        userId: 'any_id',
+        token: 'any_token'
+      };
+
+      const response = () => sut.handler(params);
+
+      expect(response).toThrow(tokenDecoderSpyWithError.error);
     });
   });
 });
