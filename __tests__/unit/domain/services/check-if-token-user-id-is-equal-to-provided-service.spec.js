@@ -11,6 +11,7 @@ class CheckIfTokenUserIdIsEqualToProvidedService {
     if (!token) throw new MissingParamError('token');
 
     this.tokenDecoder.decode({ token });
+    return null;
   }
 }
 
@@ -38,7 +39,6 @@ const makeTokenDecoderSpyWithError = () => {
 
 const makeSut = () => {
   const tokenDecoderSpy = makeTokenDecoderSpy();
-  tokenDecoderSpy.response = DataFakerHelper.getObject();
 
   const sut = new CheckIfTokenUserIdIsEqualToProvidedService({ tokenDecoder: tokenDecoderSpy });
 
@@ -123,6 +123,21 @@ describe('Given the CheckIfTokenUserIdIsEqualToProvidedService', () => {
       const response = () => sut.handler(params);
 
       expect(response).toThrow(tokenDecoderSpyWithError.error);
+    });
+  });
+
+  describe('And the decode method of tokenDecoder dependency does not return the userId property', () => {
+    test('Then I expect it returns null', () => {
+      const { sut, tokenDecoderSpy } = makeSut();
+      tokenDecoderSpy.response = {};
+      const params = {
+        userId: 'any_id',
+        token: 'any_token'
+      };
+
+      const response = sut.handler(params);
+
+      expect(response).toBeNull();
     });
   });
 });
