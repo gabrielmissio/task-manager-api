@@ -68,11 +68,41 @@ const makeSut = () => {
 };
 
 describe('Given the GetBooksAndRelatedTasksController', () => {
+  describe('And no httpRequest is provided', () => {
+    let response;
+    beforeAll(async () => {
+      const { sut } = makeSut();
+      response = await sut.handler();
+    });
+
+    test('Then I expect it returns statusCode 500', () => {
+      expect(response.statusCode).toBe(500);
+    });
+    test('Then I expect it returns the body with InternalServerError message', () => {
+      expect(response.body).toEqual({ error: new InternalServerError().message });
+    });
+  });
+
   describe('And httpRequest has no params', () => {
     let response;
     beforeAll(async () => {
       const { sut } = makeSut();
-      response = await sut.handler({});
+      response = await sut.handler({ headers: {} });
+    });
+
+    test('Then I expect it returns statusCode 500', async () => {
+      expect(response.statusCode).toBe(500);
+    });
+    test('Then I expect it returns the body with InternalServerError message', () => {
+      expect(response.body).toEqual({ error: new InternalServerError().message });
+    });
+  });
+
+  describe('And httpRequest has no headers', () => {
+    let response;
+    beforeAll(async () => {
+      const { sut } = makeSut();
+      response = await sut.handler({ params: {} });
     });
 
     test('Then I expect it returns statusCode 500', async () => {
@@ -116,7 +146,7 @@ describe('Given the GetBooksAndRelatedTasksController', () => {
   describe('And the requestParamsValidator dependency is injected and has the validate method', () => {
     test('Then I expect it calls the validate method of requestParamsValidator dependency with the expected params', async () => {
       const { sut, requestParamsValidatorSpy } = makeSut();
-      const request = { params: { userId: DataFakerHelper.getUUID() } };
+      const request = { params: { userId: DataFakerHelper.getUUID() }, headers: {} };
 
       await sut.handler(request);
       expect(requestParamsValidatorSpy.params).toBe(request.params);
@@ -130,7 +160,7 @@ describe('Given the GetBooksAndRelatedTasksController', () => {
     beforeAll(async () => {
       const { sut, requestParamsValidatorSpy } = makeSut();
       requestParamsValidatorSpy.response = errorMessage;
-      response = await sut.handler({ params: {} });
+      response = await sut.handler({ params: {}, headers: {} });
     });
 
     test('Then I expect it returns statusCode 400', () => {

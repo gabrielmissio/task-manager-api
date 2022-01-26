@@ -1,6 +1,5 @@
 const { HttpResponse } = require('../helpers');
 const { InvalidRequestError, NotFoundError } = require('../errors');
-const { MissingParamError } = require('../../utils/errors');
 const {
   ErrorMessagesEnum: { USER_NOT_FOUND }
 } = require('../../utils/enums');
@@ -14,20 +13,13 @@ class GetBooksAndRelatedTasksController {
 
   async handler(httpRequest) {
     try {
-      if (!httpRequest.params) throw new MissingParamError('params');
-
       const errors = this.requestParamsValidator.validate(httpRequest.params);
       if (errors) return HttpResponse.badRequest(new InvalidRequestError(errors));
 
-      const isAllowed = this.checkIfRequestIsAllowedService.handler({
-        userId: httpRequest.params.userId,
-        authorization: httpRequest.headers.authorization
-      });
+      const isAllowed = this.checkIfRequestIsAllowed({ headers: httpRequest.headers, params: httpRequest.params });
       if (!isAllowed) return HttpResponse.forbidden();
 
-      const booksAndRelatedTasksModel = await this.getBooksAndRelatedTasksService.handler({
-        userId: httpRequest.params.userId
-      });
+      const booksAndRelatedTasksModel = await this.getBooksAndRelatedTasksModel({ params: httpRequest.params });
       if (!booksAndRelatedTasksModel) return HttpResponse.notFound(new NotFoundError(USER_NOT_FOUND));
 
       return HttpResponse.ok(booksAndRelatedTasksModel);
@@ -35,6 +27,19 @@ class GetBooksAndRelatedTasksController {
       console.log(error);
       return HttpResponse.exceptionHandler(error);
     }
+  }
+
+  checkIfRequestIsAllowed({ params, headers }) {
+    return this.checkIfRequestIsAllowedService.handler({
+      userId: params.userId,
+      authorization: headers.authorization
+    });
+  }
+
+  async getBooksAndRelatedTasksModel({ params }) {
+    return this.getBooksAndRelatedTasksService.handler({
+      userId: params.userId
+    });
   }
 }
 
