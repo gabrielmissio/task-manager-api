@@ -9,7 +9,8 @@ class GetBooksAndRelatedTasksService {
 
   async handler({ userId }) {
     if (!userId) throw new MissingParamError('userId');
-    this.getBooksAndRelatedTasksByUserIdRepository.get({ userId });
+
+    await this.getBooksAndRelatedTasksByUserIdRepository.get({ userId });
     this.bookAndRelatedTasksSerializer.serialize();
   }
 }
@@ -23,6 +24,17 @@ const makeGetBooksAndRelatedTasksByUserIdRepositorySpy = () => {
   }
 
   return new GetBooksAndRelatedTasksByUserIdRepositorySpy();
+};
+
+const makeGetBooksAndRelatedTasksByUserIdRepositorySpyWithError = () => {
+  class GetBooksAndRelatedTasksByUserIdRepositorySpyWithError {
+    async get() {
+      this.error = DataFakerHelper.getSentence({ words: 3 });
+      throw new Error(this.error);
+    }
+  }
+
+  return new GetBooksAndRelatedTasksByUserIdRepositorySpyWithError();
 };
 
 const makeBookAndRelatedTasksSerializerSpy = () => {
@@ -67,7 +79,7 @@ describe('Given the GetBooksAndRelatedTasksService', () => {
   describe('And the getBooksAndRelatedTasksByUserIdRepository dependency is not injected', () => {
     test('Then I expect it throws an error', async () => {
       const sut = new GetBooksAndRelatedTasksService();
-      const params = { userId: 'any_email' };
+      const params = { userId: 'any_userId' };
 
       const response = sut.handler(params);
 
@@ -78,7 +90,7 @@ describe('Given the GetBooksAndRelatedTasksService', () => {
   describe('And the getBooksAndRelatedTasksByUserIdRepository dependency has no get method', () => {
     test('Then I expect it throws an error', async () => {
       const sut = new GetBooksAndRelatedTasksService({ getBooksAndRelatedTasksByUserIdRepository: {} });
-      const params = { userId: 'any_email' };
+      const params = { userId: 'any_userId' };
 
       const response = sut.handler(params);
 
@@ -99,13 +111,28 @@ describe('Given the GetBooksAndRelatedTasksService', () => {
     });
   });
 
+  describe('And the get method of getBooksAndRelatedTasksByUserIdRepository dependency throws an error', () => {
+    test('Then I expect it throws an error', async () => {
+      const getBooksAndRelatedTasksByUserIdRepositorySpyWithError =
+        makeGetBooksAndRelatedTasksByUserIdRepositorySpyWithError();
+      const sut = new GetBooksAndRelatedTasksService({
+        getBooksAndRelatedTasksByUserIdRepository: getBooksAndRelatedTasksByUserIdRepositorySpyWithError
+      });
+
+      const params = { userId: 'any_userId' };
+      const promise = sut.handler(params);
+
+      await expect(promise).rejects.toThrow(new Error(getBooksAndRelatedTasksByUserIdRepositorySpyWithError.error));
+    });
+  });
+
   describe('And the bookAndRelatedTasksSerializer dependency is not injected', () => {
     test('Then I expect it throws an error', async () => {
       const { getBooksAndRelatedTasksByUserIdRepositorySpy } = makeSut();
       const sut = new GetBooksAndRelatedTasksService({
         getBooksAndRelatedTasksByUserIdRepository: getBooksAndRelatedTasksByUserIdRepositorySpy
       });
-      const params = { userId: 'any_email' };
+      const params = { userId: 'any_userId' };
 
       const response = sut.handler(params);
 
@@ -120,7 +147,7 @@ describe('Given the GetBooksAndRelatedTasksService', () => {
         getBooksAndRelatedTasksByUserIdRepository: getBooksAndRelatedTasksByUserIdRepositorySpy,
         bookAndRelatedTasksSerializer: {}
       });
-      const params = { userId: 'any_email' };
+      const params = { userId: 'any_userId' };
 
       const response = sut.handler(params);
 
