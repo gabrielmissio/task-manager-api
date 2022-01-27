@@ -10,8 +10,8 @@ class GetBooksAndRelatedTasksService {
   async handler({ userId }) {
     if (!userId) throw new MissingParamError('userId');
 
-    await this.getBooksAndRelatedTasksByUserIdRepository.get({ userId });
-    this.bookAndRelatedTasksSerializer.serialize();
+    const booksAndRelatedTasks = await this.getBooksAndRelatedTasksByUserIdRepository.get({ userId });
+    this.bookAndRelatedTasksSerializer.serialize(booksAndRelatedTasks);
   }
 }
 
@@ -39,7 +39,8 @@ const makeGetBooksAndRelatedTasksByUserIdRepositorySpyWithError = () => {
 
 const makeBookAndRelatedTasksSerializerSpy = () => {
   class BookAndRelatedTasksSerializerSpy {
-    serialize() {
+    serialize(params) {
+      this.params = params;
       return this.response;
     }
   }
@@ -154,6 +155,17 @@ describe('Given the GetBooksAndRelatedTasksService', () => {
       await expect(response).rejects.toThrow(
         new Error('this.bookAndRelatedTasksSerializer.serialize is not a function')
       );
+    });
+  });
+
+  describe('And the serialize method of bookAndRelatedTasksSerializer dependency is called', () => {
+    test('Then I expect it calls the serialize method with the value returned from get method of getBooksAndRelatedTasksByUserIdRepository dependency', async () => {
+      const { sut, getBooksAndRelatedTasksByUserIdRepositorySpy, bookAndRelatedTasksSerializerSpy } = makeSut();
+      const params = { userId: 'any_userId' };
+
+      await sut.handler(params);
+
+      expect(getBooksAndRelatedTasksByUserIdRepositorySpy.response).toEqual(bookAndRelatedTasksSerializerSpy.params);
     });
   });
 });
