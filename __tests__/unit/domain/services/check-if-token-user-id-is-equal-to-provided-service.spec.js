@@ -10,8 +10,11 @@ class CheckIfTokenUserIdIsEqualToProvidedService {
     if (!userId) throw new MissingParamError('userId');
     if (!token) throw new MissingParamError('token');
 
-    this.tokenDecoder.decode({ token });
-    return null;
+    const tokenPayload = this.tokenDecoder.decode({ token });
+    const tokenUserId = tokenPayload && tokenPayload.userId;
+    const isEqual = tokenUserId && tokenUserId === userId;
+
+    return isEqual;
   }
 }
 
@@ -137,7 +140,26 @@ describe('Given the CheckIfTokenUserIdIsEqualToProvidedService', () => {
 
       const response = sut.handler(params);
 
-      expect(response).toBeNull();
+      expect(response).toBeFalsy();
+    });
+  });
+
+  describe('And the decode method of tokenDecoder dependency returns an userId', () => {
+    test('Then I expect it returns the result of the comparison between the token userId and the provided userId', () => {
+      const { sut, tokenDecoderSpy } = makeSut();
+      const params = {
+        userId: DataFakerHelper.getUUID(),
+        token: DataFakerHelper.getString()
+      };
+      tokenDecoderSpy.response = { userId: params.userId };
+      const resultMatches = sut.handler(params);
+
+      expect(resultMatches).toBeTruthy();
+
+      tokenDecoderSpy.response = { userId: 'any_userId' };
+      const resultDoesNotMatches = sut.handler(params);
+
+      expect(resultDoesNotMatches).toBeFalsy();
     });
   });
 });
