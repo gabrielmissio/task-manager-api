@@ -1,6 +1,10 @@
 const { MissingParamError } = require('../../../../src/utils/errors');
 
 class GetBooksAndRelatedTasksService {
+  constructor({ getBooksAndRelatedTasksByUserIdRepository } = {}) {
+    this.getBooksAndRelatedTasksByUserIdRepository = getBooksAndRelatedTasksByUserIdRepository;
+  }
+
   async handler({ userId }) {
     if (!userId) throw new MissingParamError('userId');
     this.getBooksAndRelatedTasksByUserIdRepository.get();
@@ -31,6 +35,19 @@ describe('Given the GetBooksAndRelatedTasksService', () => {
       const response = sut.handler(params);
 
       await expect(response).rejects.toThrow(new Error("Cannot read property 'get' of undefined"));
+    });
+  });
+
+  describe('And the getBooksAndRelatedTasksByUserIdRepository dependency has no get method', () => {
+    test('Then I expect it throws an error', async () => {
+      const sut = new GetBooksAndRelatedTasksService({ getBooksAndRelatedTasksByUserIdRepository: {} });
+      const params = { userId: 'any_email' };
+
+      const response = sut.handler(params);
+
+      await expect(response).rejects.toThrow(
+        new Error('this.getBooksAndRelatedTasksByUserIdRepository.get is not a function')
+      );
     });
   });
 });
