@@ -1,4 +1,5 @@
 const { MissingParamError } = require('../../../../src/utils/errors');
+const { DataFakerHelper } = require('../../../helpers');
 
 class GetBooksAndRelatedTasksService {
   constructor({ getBooksAndRelatedTasksByUserIdRepository } = {}) {
@@ -7,14 +8,33 @@ class GetBooksAndRelatedTasksService {
 
   async handler({ userId }) {
     if (!userId) throw new MissingParamError('userId');
-    this.getBooksAndRelatedTasksByUserIdRepository.get();
+    this.getBooksAndRelatedTasksByUserIdRepository.get({ userId });
   }
 }
 
-const makeSut = () => {
-  const sut = new GetBooksAndRelatedTasksService();
+const makeGetBooksAndRelatedTasksByUserIdRepositorySpy = () => {
+  class GetBooksAndRelatedTasksByUserIdRepositorySpy {
+    async get({ userId }) {
+      this.params = userId;
+      return this.response;
+    }
+  }
 
-  return { sut };
+  return new GetBooksAndRelatedTasksByUserIdRepositorySpy();
+};
+
+const makeSut = () => {
+  const getBooksAndRelatedTasksByUserIdRepositorySpy = makeGetBooksAndRelatedTasksByUserIdRepositorySpy();
+  getBooksAndRelatedTasksByUserIdRepositorySpy.response = DataFakerHelper.getObject();
+
+  const sut = new GetBooksAndRelatedTasksService({
+    getBooksAndRelatedTasksByUserIdRepository: getBooksAndRelatedTasksByUserIdRepositorySpy
+  });
+
+  return {
+    sut,
+    getBooksAndRelatedTasksByUserIdRepositorySpy
+  };
 };
 
 describe('Given the GetBooksAndRelatedTasksService', () => {
@@ -48,6 +68,17 @@ describe('Given the GetBooksAndRelatedTasksService', () => {
       await expect(response).rejects.toThrow(
         new Error('this.getBooksAndRelatedTasksByUserIdRepository.get is not a function')
       );
+    });
+  });
+
+  describe('And the get method of getBooksAndRelatedTasksByUserIdRepository dependency is called', () => {
+    test('Then I expect it calls the get method with the expected params', async () => {
+      const { sut, getBooksAndRelatedTasksByUserIdRepositorySpy } = makeSut();
+      const params = { userId: DataFakerHelper.getUUID() };
+
+      await sut.handler(params);
+
+      expect(getBooksAndRelatedTasksByUserIdRepositorySpy.params).toBe(params.userId);
     });
   });
 });
