@@ -11,7 +11,10 @@ class GetBooksAndRelatedTasksService {
     if (!userId) throw new MissingParamError('userId');
 
     const booksAndRelatedTasks = await this.getBooksAndRelatedTasksByUserIdRepository.get({ userId });
+    if (!booksAndRelatedTasks) return null;
+
     this.bookAndRelatedTasksSerializer.serialize(booksAndRelatedTasks);
+    return 0;
   }
 }
 
@@ -124,6 +127,18 @@ describe('Given the GetBooksAndRelatedTasksService', () => {
       const promise = sut.handler(params);
 
       await expect(promise).rejects.toThrow(new Error(getBooksAndRelatedTasksByUserIdRepositorySpyWithError.error));
+    });
+  });
+
+  describe('And the get method of getBooksAndRelatedTasksByUserIdRepository dependency returns null', () => {
+    test('Then I expect it returns null', async () => {
+      const { sut, getBooksAndRelatedTasksByUserIdRepositorySpy } = makeSut();
+      getBooksAndRelatedTasksByUserIdRepositorySpy.response = null;
+
+      const params = { userId: 'any_userId' };
+      const response = await sut.handler(params);
+
+      expect(response).toBeNull();
     });
   });
 
