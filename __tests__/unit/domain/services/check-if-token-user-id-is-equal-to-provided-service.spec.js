@@ -1,22 +1,6 @@
+const { CheckIfTokenUserIdIsEqualToProvidedService } = require('../../../../src/domain/services');
 const { MissingParamError } = require('../../../../src/utils/errors');
 const { DataFakerHelper } = require('../../../helpers');
-
-class CheckIfTokenUserIdIsEqualToProvidedService {
-  constructor({ tokenDecoder } = {}) {
-    this.tokenDecoder = tokenDecoder;
-  }
-
-  handler({ userId, token }) {
-    if (!userId) throw new MissingParamError('userId');
-    if (!token) throw new MissingParamError('token');
-
-    const tokenPayload = this.tokenDecoder.decode({ token });
-    const tokenUserId = tokenPayload && tokenPayload.userId;
-    const isEqual = tokenUserId && tokenUserId === userId;
-
-    return isEqual;
-  }
-}
 
 const makeTokenDecoderSpy = () => {
   class TokenDecoderSpy {
