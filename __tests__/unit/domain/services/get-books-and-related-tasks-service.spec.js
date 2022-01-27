@@ -112,4 +112,21 @@ describe('Given the GetBooksAndRelatedTasksService', () => {
       await expect(response).rejects.toThrow(new Error("Cannot read property 'serialize' of undefined"));
     });
   });
+
+  describe('And the bookAndRelatedTasksSerializer dependency has no serialize method', () => {
+    test('Then I expect it throws an error', async () => {
+      const { getBooksAndRelatedTasksByUserIdRepositorySpy } = makeSut();
+      const sut = new GetBooksAndRelatedTasksService({
+        getBooksAndRelatedTasksByUserIdRepository: getBooksAndRelatedTasksByUserIdRepositorySpy,
+        bookAndRelatedTasksSerializer: {}
+      });
+      const params = { userId: 'any_email' };
+
+      const response = sut.handler(params);
+
+      await expect(response).rejects.toThrow(
+        new Error('this.bookAndRelatedTasksSerializer.serialize is not a function')
+      );
+    });
+  });
 });
