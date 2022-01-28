@@ -51,6 +51,16 @@ const makeBookAndRelatedTasksSerializerSpy = () => {
   return new BookAndRelatedTasksSerializerSpy();
 };
 
+const makeBookAndRelatedTasksSerializerSpyWithError = () => {
+  class BookAndRelatedTasksSerializerSpyWithError {
+    serialize() {
+      throw new Error(this.error);
+    }
+  }
+
+  return new BookAndRelatedTasksSerializerSpyWithError();
+};
+
 const makeSut = () => {
   const getBooksAndRelatedTasksByUserIdRepositorySpy = makeGetBooksAndRelatedTasksByUserIdRepositorySpy();
   getBooksAndRelatedTasksByUserIdRepositorySpy.response = DataFakerHelper.getObject();
@@ -181,6 +191,24 @@ describe('Given the GetBooksAndRelatedTasksService', () => {
       await sut.handler(params);
 
       expect(getBooksAndRelatedTasksByUserIdRepositorySpy.response).toEqual(bookAndRelatedTasksSerializerSpy.params);
+    });
+  });
+
+  describe('And the serialize method of bookAndRelatedTasksSerializer dependency throws an error', () => {
+    test('Then I expect it throws an error', async () => {
+      const { getBooksAndRelatedTasksByUserIdRepositorySpy } = makeSut();
+      const bookAndRelatedTasksSerializerSpyWithError = makeBookAndRelatedTasksSerializerSpyWithError();
+      bookAndRelatedTasksSerializerSpyWithError.error = DataFakerHelper.getSentence({ words: 3 });
+
+      const sut = new GetBooksAndRelatedTasksService({
+        getBooksAndRelatedTasksByUserIdRepository: getBooksAndRelatedTasksByUserIdRepositorySpy,
+        bookAndRelatedTasksSerializer: bookAndRelatedTasksSerializerSpyWithError
+      });
+
+      const params = { userId: 'any_userId' };
+      const promise = sut.handler(params);
+
+      await expect(promise).rejects.toThrow(new Error(bookAndRelatedTasksSerializerSpyWithError.error));
     });
   });
 });
