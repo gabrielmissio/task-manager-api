@@ -2,9 +2,9 @@ const { MissingParamError } = require('../../../../src/utils/errors');
 const { DataFakerHelper } = require('../../../helpers');
 
 class GetBooksAndRelatedTasksService {
-  constructor({ getBooksAndRelatedTasksByUserIdRepository, bookAndRelatedTasksSerializer } = {}) {
+  constructor({ getBooksAndRelatedTasksByUserIdRepository, booksAndRelatedTasksSerializer } = {}) {
     this.getBooksAndRelatedTasksByUserIdRepository = getBooksAndRelatedTasksByUserIdRepository;
-    this.bookAndRelatedTasksSerializer = bookAndRelatedTasksSerializer;
+    this.booksAndRelatedTasksSerializer = booksAndRelatedTasksSerializer;
   }
 
   async handler({ userId }) {
@@ -13,8 +13,8 @@ class GetBooksAndRelatedTasksService {
     const booksAndRelatedTasks = await this.getBooksAndRelatedTasksByUserIdRepository.get({ userId });
     if (!booksAndRelatedTasks) return null;
 
-    this.bookAndRelatedTasksSerializer.serialize(booksAndRelatedTasks);
-    return 0;
+    const booksAndRelatedTasksModel = this.booksAndRelatedTasksSerializer.serialize(booksAndRelatedTasks);
+    return booksAndRelatedTasksModel;
   }
 }
 
@@ -40,43 +40,43 @@ const makeGetBooksAndRelatedTasksByUserIdRepositorySpyWithError = () => {
   return new GetBooksAndRelatedTasksByUserIdRepositorySpyWithError();
 };
 
-const makeBookAndRelatedTasksSerializerSpy = () => {
-  class BookAndRelatedTasksSerializerSpy {
+const makebooksAndRelatedTasksSerializerSpy = () => {
+  class BooksAndRelatedTasksSerializerSpy {
     serialize(params) {
       this.params = params;
       return this.response;
     }
   }
 
-  return new BookAndRelatedTasksSerializerSpy();
+  return new BooksAndRelatedTasksSerializerSpy();
 };
 
-const makeBookAndRelatedTasksSerializerSpyWithError = () => {
-  class BookAndRelatedTasksSerializerSpyWithError {
+const makebooksAndRelatedTasksSerializerSpyWithError = () => {
+  class BooksAndRelatedTasksSerializerSpyWithError {
     serialize() {
       throw new Error(this.error);
     }
   }
 
-  return new BookAndRelatedTasksSerializerSpyWithError();
+  return new BooksAndRelatedTasksSerializerSpyWithError();
 };
 
 const makeSut = () => {
   const getBooksAndRelatedTasksByUserIdRepositorySpy = makeGetBooksAndRelatedTasksByUserIdRepositorySpy();
   getBooksAndRelatedTasksByUserIdRepositorySpy.response = DataFakerHelper.getObject();
 
-  const bookAndRelatedTasksSerializerSpy = makeBookAndRelatedTasksSerializerSpy();
-  bookAndRelatedTasksSerializerSpy.response = DataFakerHelper.getObject();
+  const booksAndRelatedTasksSerializerSpy = makebooksAndRelatedTasksSerializerSpy();
+  booksAndRelatedTasksSerializerSpy.response = DataFakerHelper.getObject();
 
   const sut = new GetBooksAndRelatedTasksService({
     getBooksAndRelatedTasksByUserIdRepository: getBooksAndRelatedTasksByUserIdRepositorySpy,
-    bookAndRelatedTasksSerializer: bookAndRelatedTasksSerializerSpy
+    booksAndRelatedTasksSerializer: booksAndRelatedTasksSerializerSpy
   });
 
   return {
     sut,
     getBooksAndRelatedTasksByUserIdRepositorySpy,
-    bookAndRelatedTasksSerializerSpy
+    booksAndRelatedTasksSerializerSpy
   };
 };
 
@@ -152,7 +152,7 @@ describe('Given the GetBooksAndRelatedTasksService', () => {
     });
   });
 
-  describe('And the bookAndRelatedTasksSerializer dependency is not injected', () => {
+  describe('And the booksAndRelatedTasksSerializer dependency is not injected', () => {
     test('Then I expect it throws an error', async () => {
       const { getBooksAndRelatedTasksByUserIdRepositorySpy } = makeSut();
       const sut = new GetBooksAndRelatedTasksService({
@@ -166,49 +166,60 @@ describe('Given the GetBooksAndRelatedTasksService', () => {
     });
   });
 
-  describe('And the bookAndRelatedTasksSerializer dependency has no serialize method', () => {
+  describe('And the booksAndRelatedTasksSerializer dependency has no serialize method', () => {
     test('Then I expect it throws an error', async () => {
       const { getBooksAndRelatedTasksByUserIdRepositorySpy } = makeSut();
       const sut = new GetBooksAndRelatedTasksService({
         getBooksAndRelatedTasksByUserIdRepository: getBooksAndRelatedTasksByUserIdRepositorySpy,
-        bookAndRelatedTasksSerializer: {}
+        booksAndRelatedTasksSerializer: {}
       });
       const params = { userId: 'any_userId' };
 
       const response = sut.handler(params);
 
       await expect(response).rejects.toThrow(
-        new Error('this.bookAndRelatedTasksSerializer.serialize is not a function')
+        new Error('this.booksAndRelatedTasksSerializer.serialize is not a function')
       );
     });
   });
 
-  describe('And the serialize method of bookAndRelatedTasksSerializer dependency is called', () => {
+  describe('And the serialize method of booksAndRelatedTasksSerializer dependency is called', () => {
     test('Then I expect it calls the serialize method with the value returned from get method of getBooksAndRelatedTasksByUserIdRepository dependency', async () => {
-      const { sut, getBooksAndRelatedTasksByUserIdRepositorySpy, bookAndRelatedTasksSerializerSpy } = makeSut();
+      const { sut, getBooksAndRelatedTasksByUserIdRepositorySpy, booksAndRelatedTasksSerializerSpy } = makeSut();
       const params = { userId: 'any_userId' };
 
       await sut.handler(params);
 
-      expect(getBooksAndRelatedTasksByUserIdRepositorySpy.response).toEqual(bookAndRelatedTasksSerializerSpy.params);
+      expect(getBooksAndRelatedTasksByUserIdRepositorySpy.response).toEqual(booksAndRelatedTasksSerializerSpy.params);
     });
   });
 
-  describe('And the serialize method of bookAndRelatedTasksSerializer dependency throws an error', () => {
+  describe('And the serialize method of booksAndRelatedTasksSerializer dependency throws an error', () => {
     test('Then I expect it throws an error', async () => {
       const { getBooksAndRelatedTasksByUserIdRepositorySpy } = makeSut();
-      const bookAndRelatedTasksSerializerSpyWithError = makeBookAndRelatedTasksSerializerSpyWithError();
-      bookAndRelatedTasksSerializerSpyWithError.error = DataFakerHelper.getSentence({ words: 3 });
+      const booksAndRelatedTasksSerializerSpyWithError = makebooksAndRelatedTasksSerializerSpyWithError();
+      booksAndRelatedTasksSerializerSpyWithError.error = DataFakerHelper.getSentence({ words: 3 });
 
       const sut = new GetBooksAndRelatedTasksService({
         getBooksAndRelatedTasksByUserIdRepository: getBooksAndRelatedTasksByUserIdRepositorySpy,
-        bookAndRelatedTasksSerializer: bookAndRelatedTasksSerializerSpyWithError
+        booksAndRelatedTasksSerializer: booksAndRelatedTasksSerializerSpyWithError
       });
 
       const params = { userId: 'any_userId' };
       const promise = sut.handler(params);
 
-      await expect(promise).rejects.toThrow(new Error(bookAndRelatedTasksSerializerSpyWithError.error));
+      await expect(promise).rejects.toThrow(new Error(booksAndRelatedTasksSerializerSpyWithError.error));
+    });
+  });
+
+  describe('And the serialize method of booksAndRelatedTasksSerializer dependency returns a booksAndRelatedTasksModel', () => {
+    test('Then I expect it returns the bookAndRelatedTasksModel returned from the serialize method', async () => {
+      const { sut, booksAndRelatedTasksSerializerSpy } = makeSut();
+
+      const params = { userId: 'any_userId' };
+      const response = await sut.handler(params);
+
+      expect(response).toEqual(booksAndRelatedTasksSerializerSpy.response);
     });
   });
 });
