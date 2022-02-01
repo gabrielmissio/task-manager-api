@@ -9,7 +9,7 @@ class GetProfileService {
     if (!userId) throw new MissingParamError('userId');
 
     const profile = await this.getProfileByUserIdRepository.get({ userId });
-    return profile || null;
+    return profile || null; // TODO: should remove password property (ensure)
   }
 }
 
