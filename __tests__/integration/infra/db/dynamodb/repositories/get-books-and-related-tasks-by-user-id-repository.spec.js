@@ -3,28 +3,7 @@ const { BooksAndRelatedTasksFactory } = require('../../../../../../src/infra/db/
 const { DynamodbClient } = require('../../../../../../src/infra/db/dynamodb/helpers');
 const { TASK_MANAGER_TABLE_NAME } = require('../../../../../../src/main/confing/env');
 const { DataFakerHelper, BookDataFaker, TaskDataFaker } = require('../../../../../helpers');
-
-class GetBooksAndRelatedTasksByUserIdRepository {
-  async get({ userId }) {
-    const params = this.buildParams({ userId });
-    const dynamodbResponse = await DynamodbClient.query(params);
-
-    const userNotFound = dynamodbResponse.Count < 1;
-    if (userNotFound) return null;
-
-    const booksAndRelatedTasks = BooksAndRelatedTasksFactory.buildBooksAndRelatedTasks(dynamodbResponse.Items);
-    return booksAndRelatedTasks;
-  }
-
-  buildParams({ userId }) {
-    if (!userId) throw new MissingParamError('userId');
-    return {
-      TableName: TASK_MANAGER_TABLE_NAME,
-      KeyConditionExpression: 'PK = :userId AND begins_with(SK, :book)',
-      ExpressionAttributeValues: { ':userId': `USER#${userId}`, ':book': 'BOOK#' }
-    };
-  }
-}
+const { GetBooksAndRelatedTasksByUserIdRepository } = require('../../../../../../src/infra/db/dynamodb/repositories');
 
 const makeSut = () => {
   const sut = new GetBooksAndRelatedTasksByUserIdRepository();
