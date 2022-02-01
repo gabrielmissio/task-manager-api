@@ -5,8 +5,14 @@ const {
 } = require('../../utils/enums');
 
 class GetBooksAndRelatedTasksController {
-  constructor({ requestParamsValidator, checkIfRequestIsAllowedService, getBooksAndRelatedTasksService } = {}) {
+  constructor({
+    requestParamsValidator,
+    checkIfUserExistService,
+    checkIfRequestIsAllowedService,
+    getBooksAndRelatedTasksService
+  } = {}) {
     this.requestParamsValidator = requestParamsValidator;
+    this.checkIfUserExistService = checkIfUserExistService;
     this.checkIfRequestIsAllowedService = checkIfRequestIsAllowedService;
     this.getBooksAndRelatedTasksService = getBooksAndRelatedTasksService;
   }
@@ -16,12 +22,13 @@ class GetBooksAndRelatedTasksController {
       const errors = this.requestParamsValidator.validate(httpRequest.params);
       if (errors) return HttpResponse.badRequest(new InvalidRequestError(errors));
 
-      const isAllowed = this.checkIfRequestIsAllowed({ headers: httpRequest.headers, params: httpRequest.params });
+      const userExist = await this.checkIfUserExistService.handler(httpRequest.params);
+      if (!userExist) return HttpResponse.notFound(new NotFoundError(USER_NOT_FOUND));
+
+      const isAllowed = this.checkIfRequestIsAllowed(httpRequest);
       if (!isAllowed) return HttpResponse.forbidden();
 
-      const booksAndRelatedTasksModel = await this.getBooksAndRelatedTasksModel({ params: httpRequest.params });
-      if (!booksAndRelatedTasksModel) return HttpResponse.notFound(new NotFoundError(USER_NOT_FOUND));
-
+      const booksAndRelatedTasksModel = await this.getBooksAndRelatedTasksService.handler(httpRequest.params);
       return HttpResponse.ok(booksAndRelatedTasksModel);
     } catch (error) {
       console.log(error);
@@ -33,12 +40,6 @@ class GetBooksAndRelatedTasksController {
     return this.checkIfRequestIsAllowedService.handler({
       userId: params.userId,
       authorization: headers.authorization
-    });
-  }
-
-  async getBooksAndRelatedTasksModel({ params }) {
-    return this.getBooksAndRelatedTasksService.handler({
-      userId: params.userId
     });
   }
 }

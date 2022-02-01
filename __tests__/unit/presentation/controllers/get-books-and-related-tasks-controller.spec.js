@@ -21,6 +21,17 @@ const makeRequestParamsValidatorSpy = () => {
   return new RequestParamsValidatorSpy();
 };
 
+const makeCheckIfUserExistServiceSpy = () => {
+  class CheckIfUserExistServiceSpy {
+    async handler({ userId }) {
+      this.params = userId;
+      return this.response;
+    }
+  }
+
+  return new CheckIfUserExistServiceSpy();
+};
+
 const makeCheckIfRequestIsAllowedServiceSpy = () => {
   class CheckIfRequestIsAllowedServiceSpy {
     handler({ userId, authorization }) {
@@ -47,6 +58,9 @@ const makeSut = () => {
   const requestParamsValidatorSpy = makeRequestParamsValidatorSpy();
   requestParamsValidatorSpy.response = null;
 
+  const checkIfUserExistServiceSpy = makeCheckIfUserExistServiceSpy();
+  checkIfUserExistServiceSpy.response = true;
+
   const checkIfRequestIsAllowedServiceSpy = makeCheckIfRequestIsAllowedServiceSpy();
   checkIfRequestIsAllowedServiceSpy.response = true;
 
@@ -55,6 +69,7 @@ const makeSut = () => {
 
   const sut = new GetBooksAndRelatedTasksController({
     requestParamsValidator: requestParamsValidatorSpy,
+    checkIfUserExistService: checkIfUserExistServiceSpy,
     checkIfRequestIsAllowedService: checkIfRequestIsAllowedServiceSpy,
     getBooksAndRelatedTasksService: getBooksAndRelatedTasksServiceSpy
   });
@@ -62,6 +77,7 @@ const makeSut = () => {
   return {
     sut,
     requestParamsValidatorSpy,
+    checkIfUserExistServiceSpy,
     checkIfRequestIsAllowedServiceSpy,
     getBooksAndRelatedTasksServiceSpy
   };
@@ -171,7 +187,7 @@ describe('Given the GetBooksAndRelatedTasksController', () => {
     });
   });
 
-  describe('And the checkIfRequestIsAllowedService dependency is not injected', () => {
+  describe('And the checkIfUserExistService dependency is not injected', () => {
     let response;
     beforeAll(async () => {
       const { requestParamsValidatorSpy } = makeSut();
@@ -189,12 +205,68 @@ describe('Given the GetBooksAndRelatedTasksController', () => {
     });
   });
 
-  describe('And the checkIfRequestIsAllowedService dependency has no handler method', () => {
+  describe('And the checkIfUserExistService dependency has no handler method', () => {
     let response;
     beforeAll(async () => {
       const { requestParamsValidatorSpy } = makeSut();
       const sut = new GetBooksAndRelatedTasksController({
         requestParamsValidator: requestParamsValidatorSpy,
+        checkIfUserExistService: {}
+      });
+      response = await sut.handler({ params: { userId: 'any_uuid' } });
+    });
+
+    test('Then I expect it returns statusCode 500', async () => {
+      expect(response.statusCode).toBe(500);
+    });
+    test('Then I expect it returns the body with InternalServerError message', () => {
+      expect(response.body).toEqual({ error: new InternalServerError().message });
+    });
+  });
+
+  describe('And the handler method of checkIfUserExistService dependency returns null', () => {
+    let response;
+
+    beforeAll(async () => {
+      const { sut, checkIfUserExistServiceSpy } = makeSut();
+      checkIfUserExistServiceSpy.response = null;
+      response = await sut.handler({ params: {}, headers: {} });
+    });
+
+    test('Then I expect it returns statusCode 404', () => {
+      expect(response.statusCode).toBe(404);
+    });
+    test('Then I expect it returns the body with a message indicating the error', () => {
+      expect(response.body).toEqual({ error: new NotFoundError(USER_NOT_FOUND).message });
+    });
+  });
+
+  describe('And the checkIfRequestIsAllowedService dependency is not injected', () => {
+    let response;
+    beforeAll(async () => {
+      const { requestParamsValidatorSpy, checkIfUserExistServiceSpy } = makeSut();
+      const sut = new GetBooksAndRelatedTasksController({
+        requestParamsValidator: requestParamsValidatorSpy,
+        checkIfUserExistService: checkIfUserExistServiceSpy
+      });
+      response = await sut.handler({ params: { userId: 'any_uuid' } });
+    });
+
+    test('Then I expect it returns statusCode 500', async () => {
+      expect(response.statusCode).toBe(500);
+    });
+    test('Then I expect it returns the body with InternalServerError message', () => {
+      expect(response.body).toEqual({ error: new InternalServerError().message });
+    });
+  });
+
+  describe('And the checkIfRequestIsAllowedService dependency has no handler method', () => {
+    let response;
+    beforeAll(async () => {
+      const { requestParamsValidatorSpy, checkIfUserExistServiceSpy } = makeSut();
+      const sut = new GetBooksAndRelatedTasksController({
+        requestParamsValidator: requestParamsValidatorSpy,
+        checkIfUserExistService: checkIfUserExistServiceSpy,
         checkIfRequestIsAllowedService: {}
       });
       response = await sut.handler({ params: { userId: 'any_uuid' } });
@@ -284,23 +356,6 @@ describe('Given the GetBooksAndRelatedTasksController', () => {
 
       await sut.handler(request);
       expect(getBooksAndRelatedTasksServiceSpy.params).toBe(request.params.userId);
-    });
-  });
-
-  describe('And the handler method of getBooksAndRelatedTasksService dependency returns null', () => {
-    let response;
-
-    beforeAll(async () => {
-      const { sut, getBooksAndRelatedTasksServiceSpy } = makeSut();
-      getBooksAndRelatedTasksServiceSpy.response = null;
-      response = await sut.handler({ params: {}, headers: {} });
-    });
-
-    test('Then I expect it returns statusCode 404', () => {
-      expect(response.statusCode).toBe(404);
-    });
-    test('Then I expect it returns the body with a message indicating the error', () => {
-      expect(response.body).toEqual({ error: new NotFoundError(USER_NOT_FOUND).message });
     });
   });
 
