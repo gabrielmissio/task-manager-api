@@ -8,8 +8,8 @@ class GetBooksAndRelatedTasksByUserIdRepository {
     const params = this.buildParams({ userId });
     const dynamodbResponse = await DynamodbClient.query(params);
 
-    const userNotFound = dynamodbResponse.Count < 1;
-    if (userNotFound) return null;
+    const booksAndTasksNotFound = dynamodbResponse.Count < 1;
+    if (booksAndTasksNotFound) return null;
 
     const booksAndRelatedTasks = BooksAndRelatedTasksFactory.buildBooksAndRelatedTasks(dynamodbResponse.Items);
     return booksAndRelatedTasks;
