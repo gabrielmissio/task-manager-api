@@ -1,9 +1,9 @@
 const { GetBooksAndRelatedTasksService } = require('../../../domain/services');
-const { GetProfileByUserIdRepository } = require('../../../infra/db/dynamodb/repositories');
+const { GetBooksAndRelatedTasksByUserIdRepository } = require('../../../infra/db/dynamodb/repositories');
 
 const makeGetBooksAndRelatedTasksService = () =>
   new GetBooksAndRelatedTasksService({
-    getProfileByUserIdRepository: new GetProfileByUserIdRepository()
+    getBooksAndRelatedTasksByUserIdRepository: new GetBooksAndRelatedTasksByUserIdRepository()
   });
 
 module.exports = makeGetBooksAndRelatedTasksService;
