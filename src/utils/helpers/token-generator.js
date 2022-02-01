@@ -11,7 +11,7 @@ class TokenGenerator {
     if (!this.secret) throw new MissingParamError('secret');
     if (!value) throw new MissingParamError('value');
 
-    const token = JWT.sign({ id: value }, this.secret);
+    const token = JWT.sign({ userId: value }, this.secret);
     return token;
   }
 }
