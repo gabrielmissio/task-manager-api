@@ -39,7 +39,7 @@ class GetBooksAndRelatedTasksController {
   checkIfRequestIsAllowed({ params, headers }) {
     return this.checkIfRequestIsAllowedService.handler({
       userId: params.userId,
-      authorization: headers.authorization
+      token: headers.authorization
     });
   }
 }
