@@ -1,4 +1,5 @@
 const { MissingParamError } = require('../../../../../../src/utils/errors');
+const { BooksAndRelatedTasksFactory } = require('../../../../../../src/infra/db/dynamodb/factories');
 const { DynamodbClient } = require('../../../../../../src/infra/db/dynamodb/helpers');
 const { TASK_MANAGER_TABLE_NAME } = require('../../../../../../src/main/confing/env');
 const { DataFakerHelper, BookDataFaker, TaskDataFaker } = require('../../../../../helpers');
@@ -11,7 +12,8 @@ class GetBooksAndRelatedTasksByUserIdRepository {
     const userNotFound = dynamodbResponse.Count < 1;
     if (userNotFound) return null;
 
-    return dynamodbResponse;
+    const booksAndRelatedTasks = BooksAndRelatedTasksFactory.buildBooksAndRelatedTasks(dynamodbResponse.Items);
+    return booksAndRelatedTasks;
   }
 
   buildParams({ userId }) {
@@ -40,7 +42,7 @@ describe('Given the GetBooksAndRelatedTasksByUserIdRepository', () => {
     });
   });
 
-  describe('And there is no user with the provided userId in the database', () => {
+  describe('And there is no book or task related to the provided userId', () => {
     test('Then I expect it returns null', async () => {
       const { sut } = makeSut();
       const response = await sut.get({ userId: DataFakerHelper.getUUID() });
@@ -49,10 +51,9 @@ describe('Given the GetBooksAndRelatedTasksByUserIdRepository', () => {
     });
   });
 
-  describe('And there is an user with the provided userId in the database', () => {
+  describe('And there is at least one book or task related to provided userId', () => {
     const bookFake = BookDataFaker.getBook();
-    const taskFake01 = TaskDataFaker.getTask({ userId: bookFake.PK, bookId: bookFake.SK });
-    const taskFake02 = TaskDataFaker.getTask({ userId: bookFake.PK, bookId: bookFake.SK });
+    const taskFake = TaskDataFaker.getTask({ userId: bookFake.PK, bookId: bookFake.SK });
 
     beforeAll(async () => {
       await Promise.all([
@@ -63,12 +64,7 @@ describe('Given the GetBooksAndRelatedTasksByUserIdRepository', () => {
 
         DynamodbClient.put({
           TableName: TASK_MANAGER_TABLE_NAME,
-          Item: taskFake01
-        }),
-
-        DynamodbClient.put({
-          TableName: TASK_MANAGER_TABLE_NAME,
-          Item: taskFake02
+          Item: taskFake
         })
       ]);
     });
@@ -86,26 +82,18 @@ describe('Given the GetBooksAndRelatedTasksByUserIdRepository', () => {
         DynamodbClient.delete({
           TableName: TASK_MANAGER_TABLE_NAME,
           Key: {
-            PK: taskFake01.PK,
-            SK: taskFake01.SK
-          }
-        }),
-
-        DynamodbClient.delete({
-          TableName: TASK_MANAGER_TABLE_NAME,
-          Key: {
-            PK: taskFake02.PK,
-            SK: taskFake02.SK
+            PK: taskFake.PK,
+            SK: taskFake.SK
           }
         })
       ]);
     });
 
-    test('Then I expect it returns the user with the provided email', async () => {
+    test('Then I expect it returns the books and tasks related with the provided userId', async () => {
       const { sut } = makeSut();
       const response = await sut.get({ userId: bookFake.PK.replace('USER#', '') });
 
-      expect(response).toEqual({});
+      expect(response).toEqual(BooksAndRelatedTasksFactory.buildBooksAndRelatedTasks([bookFake, taskFake]));
     });
   });
 });
