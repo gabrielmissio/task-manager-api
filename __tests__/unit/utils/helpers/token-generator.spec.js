@@ -32,10 +32,10 @@ describe('Given the TokenGenerator', () => {
   describe('And calls sign method of JWT dependency', () => {
     test('Then I expect it calls sign method with expected params', async () => {
       const { sut } = makeSut();
-      const id = DataFakerHelper.getUUID();
-      await sut.generate({ value: id });
+      const userId = DataFakerHelper.getUUID();
+      await sut.generate({ value: userId });
 
-      expect(JWT.value).toEqual({ id });
+      expect(JWT.value).toEqual({ userId });
       expect(JWT.secret).toBe(sut.secret);
     });
   });

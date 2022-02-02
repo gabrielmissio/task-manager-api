@@ -1,7 +1,11 @@
 const router = require('express').Router();
-const { authRoutes } = require('../routes');
+const { Auth } = require('../middlewares');
+const { authRoutes, bookRoutes } = require('../routes');
 
 module.exports = (app) => {
   app.use('/', router);
   authRoutes(router);
+
+  router.use(Auth);
+  bookRoutes(router);
 };

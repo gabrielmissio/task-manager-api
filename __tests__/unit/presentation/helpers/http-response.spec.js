@@ -1,5 +1,5 @@
 const { HttpResponse } = require('../../../../src/presentation/helpers');
-const { InternalServerError, UnauthorizedError } = require('../../../../src/presentation/errors');
+const { InternalServerError, UnauthorizedError, ForbiddenError } = require('../../../../src/presentation/errors');
 const { DataFakerHelper } = require('../../../helpers');
 
 const makeSut = () => {
@@ -54,6 +54,37 @@ describe('Given the HttpResponse', () => {
     });
     test('Then I expect it returns the body with the UnauthorizedError message', () => {
       expect(response.body).toEqual({ error: new UnauthorizedError().message });
+    });
+  });
+
+  describe('And the forbidden method is called', () => {
+    let response;
+    beforeAll(() => {
+      const { sut } = makeSut();
+      response = sut.forbidden();
+    });
+
+    test('Then I expect it returns statusCode 403', () => {
+      expect(response.statusCode).toBe(403);
+    });
+    test('Then I expect it returns the body with the ForbiddenError message', () => {
+      expect(response.body).toEqual({ error: new ForbiddenError().message });
+    });
+  });
+
+  describe('And the notFound method is called', () => {
+    let response;
+    const error = { message: DataFakerHelper.getString() };
+    beforeAll(() => {
+      const { sut } = makeSut();
+      response = sut.notFound(error);
+    });
+
+    test('Then I expect it returns statusCode 404', () => {
+      expect(response.statusCode).toBe(404);
+    });
+    test('Then I expect it returns the body with the provided error message', () => {
+      expect(response.body).toEqual({ error: error.message });
     });
   });
 
