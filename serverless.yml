@@ -1,0 +1,53 @@
+service: task-manager
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-1'}
+  lambdaHashingVersion: 20201221
+  environment:
+    NODE_ENV: ${opt:stage, 'dev'}
+    REGION: ${opt:region, 'us-east-1'}
+    SECRET: ${ssm:/tm/${opt:stage, 'dev'}/secret}
+    TASK_MANAGER_TABLE_NAME: ${ssm:/tm/${opt:stage, 'dev'}/dynamoDB/table/name}
+  iam:
+    role:
+      statements:
+        - Effect: 'Allow'
+          Action:
+            - 'dynamodb:GetItem'
+            - 'dynamodb:Query'
+          Resource:
+            - ${ssm:/tm/${opt:stage, 'dev'}/dynamoDB/table/arn}
+        - Effect: 'Allow'
+          Action:
+            - 'dynamodb:Query'
+          Resource:
+            - ${ssm:/tm/${opt:stage, 'dev'}/dynamoDB/table/arn}/index/*
+
+plugins:
+  - serverless-offline
+
+package:
+  patterns:
+    - '!./**'
+    - './index-lambda.js'
+    - './node_modules/**'
+    - './src/**'
+    - '!./src/infra/db/dynamodb/migrations'
+    - '!./src/infra/db/dynamodb/seeders'
+
+functions:
+  app:
+    handler: index-lambda.handler
+    timeout: 6
+    events:
+      - http:
+          method: POST
+          path: '/login'
+          private: false
+      - http:
+          method: GET
+          path: '/user/{userId}/book'
+          private: false
