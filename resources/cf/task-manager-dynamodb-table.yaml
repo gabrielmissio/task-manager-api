@@ -1,0 +1,90 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: AWS CloudFormation Template to task manager dynamodb table
+
+Parameters:
+  StageName:
+    Description: The stage of the stack
+    Default: dev
+    Type: String
+    MinLength: 1
+    MaxLength: 16
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9\-]*'
+    ConstraintDescription: must begin with a letter and contain only alphanumeric characters.
+  ReadCapacityUnits:
+    Description: Provisioned read throughput
+    Type: Number
+    Default: 5
+    MinValue: 5
+    MaxValue: 10000
+    ConstraintDescription: must be between 5 and 10000
+  WriteCapacityUnits:
+    Description: Provisioned write throughput
+    Type: Number
+    Default: 5
+    MinValue: 5
+    MaxValue: 10000
+    ConstraintDescription: must be between 5 and 10000
+
+Resources:
+  TaskManagerTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub task-manager-${StageName}
+      KeySchema:
+      - AttributeName: PK
+        KeyType: HASH
+      - AttributeName: SK
+        KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: !Ref 'ReadCapacityUnits'
+        WriteCapacityUnits: !Ref 'WriteCapacityUnits'
+      AttributeDefinitions:
+        - AttributeName: PK
+          AttributeType: S
+        - AttributeName: SK
+          AttributeType: S
+        - AttributeName: email
+          AttributeType: S
+      GlobalSecondaryIndexes:
+      - IndexName: email-index
+        KeySchema:
+          - AttributeName: email
+            KeyType: HASH
+        Projection:
+          ProjectionType: 'ALL'
+        ProvisionedThroughput:
+          ReadCapacityUnits: !Ref 'ReadCapacityUnits'
+          WriteCapacityUnits: !Ref 'WriteCapacityUnits'
+
+  DynamoTableParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Join
+        - '/'
+        - - ''
+          - 'tm'
+          - !Ref StageName
+          - 'dynamoDB'
+          - 'table'
+          - 'name'
+      Type: String
+      Value: !Ref TaskManagerTable
+
+  DynamoTableParameterArn:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Join
+        - '/'
+        - - ''
+          - 'tm'
+          - !Ref StageName
+          - 'dynamoDB'
+          - 'table'
+          - 'arn'
+      Type: String
+      Value: !GetAtt 'TaskManagerTable.Arn'
+
+Outputs:
+  TableName:
+    Value: !Ref 'TaskManagerTable'
+    Description: Table name of the newly created DynamoDB table
