@@ -34,8 +34,8 @@ const makeCheckIfUserExistServiceSpy = () => {
 
 const makeCheckIfRequestIsAllowedServiceSpy = () => {
   class CheckIfRequestIsAllowedServiceSpy {
-    handler({ userId, authorization }) {
-      this.params = { userId, authorization };
+    handler({ userId, token }) {
+      this.params = { userId, token };
       return this.response;
     }
   }
@@ -289,7 +289,7 @@ describe('Given the GetBooksAndRelatedTasksController', () => {
       };
       await sut.handler(request);
       expect(checkIfRequestIsAllowedServiceSpy.params.userId).toBe(request.params.userId);
-      expect(checkIfRequestIsAllowedServiceSpy.params.authorization).toBe(request.headers.authorization);
+      expect(checkIfRequestIsAllowedServiceSpy.params.token).toBe(request.headers.authorization);
     });
   });
 

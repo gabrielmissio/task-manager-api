@@ -33,9 +33,9 @@ describe('Given the TokenDecoder', () => {
   describe('And a valid token is provided', () => {
     test('Then I expect it returns the decoded token payload', async () => {
       const { sut } = makeSut();
-      const payload = { id: DataFakerHelper.getUUID() };
+      const payload = { userId: DataFakerHelper.getUUID() };
       const tokenGenerator = new TokenGenerator({ secret: 'secret' });
-      const token = await tokenGenerator.generate({ value: payload.id });
+      const token = await tokenGenerator.generate({ value: payload.userId });
 
       const response = sut.decode({ token });
       delete response.iat;
