@@ -70,28 +70,6 @@ const makeTokenGeneratorSpyWithError = () => {
   return new TokenGeneratorSpyWithError();
 };
 
-const makeAuthenticationSerializerSpy = () => {
-  class AuthenticationSerializerSpy {
-    serialize({ id, email, accessToken }) {
-      this.params = { id, email, accessToken };
-      return this.response;
-    }
-  }
-
-  return new AuthenticationSerializerSpy();
-};
-
-const makeAuthenticationSerializerSpyWithError = () => {
-  class AuthenticationSerializerSpyWithError {
-    serialize() {
-      this.errorMessage = DataFakerHelper.getSentence({ words: 3 });
-      throw new Error(this.errorMessage);
-    }
-  }
-
-  return new AuthenticationSerializerSpyWithError();
-};
-
 const makeSut = () => {
   const getProfileByEmailRepositorySpy = makeGetProfileByEmailRepositorySpy();
   getProfileByEmailRepositorySpy.response = {
@@ -105,22 +83,17 @@ const makeSut = () => {
   const tokenGeneratorSpy = makeTokenGeneratorSpy();
   tokenGeneratorSpy.response = DataFakerHelper.getString();
 
-  const authenticationSerializerSpy = makeAuthenticationSerializerSpy();
-  authenticationSerializerSpy.response = DataFakerHelper.getObject();
-
   const sut = new LoginService({
     getProfileByEmailRepository: getProfileByEmailRepositorySpy,
     encrypter: encrypterSpy,
-    tokenGenerator: tokenGeneratorSpy,
-    authenticationSerializer: authenticationSerializerSpy
+    tokenGenerator: tokenGeneratorSpy
   });
 
   return {
     sut,
     getProfileByEmailRepositorySpy,
     encrypterSpy,
-    tokenGeneratorSpy,
-    authenticationSerializerSpy
+    tokenGeneratorSpy
   };
 };
 
@@ -354,85 +327,9 @@ describe('Given the LoginService', () => {
     });
   });
 
-  describe('And the authenticationSerializer dependency is not injected', () => {
-    test('Then I expect it throws an error', async () => {
-      const { getProfileByEmailRepositorySpy, encrypterSpy, tokenGeneratorSpy } = makeSut();
-      const sut = new LoginService({
-        encrypter: encrypterSpy,
-        getProfileByEmailRepository: getProfileByEmailRepositorySpy,
-        tokenGenerator: tokenGeneratorSpy
-      });
-      const params = {
-        email: 'any_email',
-        password: 'any_password'
-      };
-
-      const promise = sut.handler(params);
-
-      await expect(promise).rejects.toThrow(new Error("Cannot read property 'serialize' of undefined"));
-    });
-  });
-
-  describe('And the authenticationSerializer dependency does not have serialize method', () => {
-    test('Then I expect it throws an error', async () => {
-      const { getProfileByEmailRepositorySpy, encrypterSpy, tokenGeneratorSpy } = makeSut();
-      const sut = new LoginService({
-        getProfileByEmailRepository: getProfileByEmailRepositorySpy,
-        encrypter: encrypterSpy,
-        tokenGenerator: tokenGeneratorSpy,
-        authenticationSerializer: {}
-      });
-      const params = {
-        email: 'any_email',
-        password: 'any_password'
-      };
-
-      const promise = sut.handler(params);
-
-      await expect(promise).rejects.toThrow(new Error('this.authenticationSerializer.serialize is not a function'));
-    });
-  });
-
-  describe('And the authenticationSerializer dependency is injected correctly', () => {
-    test('Then I expect it calls the serialize method with the expected values', async () => {
-      const { sut, authenticationSerializerSpy, tokenGeneratorSpy, getProfileByEmailRepositorySpy } = makeSut();
-      const params = {
-        email: DataFakerHelper.getEmail(),
-        password: 'anyPassword'
-      };
-
-      await Promise.allSettled([sut.handler(params)]);
-
-      expect(authenticationSerializerSpy.params.id).toBe(getProfileByEmailRepositorySpy.response.id);
-      expect(authenticationSerializerSpy.params.email).toBe(getProfileByEmailRepositorySpy.response.email);
-      expect(authenticationSerializerSpy.params.accessToken).toBe(tokenGeneratorSpy.response);
-    });
-  });
-
-  describe('And the authenticationSerializer dependency throws an error', () => {
-    test('Then I expect it throws an error', async () => {
-      const { getProfileByEmailRepositorySpy, encrypterSpy, tokenGeneratorSpy } = makeSut();
-      const authenticationSerializerSpyWithError = makeAuthenticationSerializerSpyWithError();
-      const sut = new LoginService({
-        getProfileByEmailRepository: getProfileByEmailRepositorySpy,
-        encrypter: encrypterSpy,
-        tokenGenerator: tokenGeneratorSpy,
-        authenticationSerializer: authenticationSerializerSpyWithError
-      });
-      const params = {
-        email: 'any_email',
-        password: 'any_password'
-      };
-
-      const promise = sut.handler(params);
-
-      await expect(promise).rejects.toThrow(authenticationSerializerSpyWithError.errorMessage);
-    });
-  });
-
   describe('And valid credentials are provided', () => {
-    test('Then I expect it returns the AuthenticationModel returned from the authenticationSerializer dependency', async () => {
-      const { sut, authenticationSerializerSpy } = makeSut();
+    test('Then I expect it returns the AuthenticationModel with the expected params', async () => {
+      const { sut, getProfileByEmailRepositorySpy, tokenGeneratorSpy } = makeSut();
       const params = {
         email: 'any_email',
         password: 'any_password'
@@ -440,7 +337,11 @@ describe('Given the LoginService', () => {
 
       const response = await sut.handler(params);
 
-      await expect(response).toEqual(authenticationSerializerSpy.response);
+      await expect(response).toEqual({
+        id: getProfileByEmailRepositorySpy.response.id,
+        email: getProfileByEmailRepositorySpy.response.email,
+        accessToken: tokenGeneratorSpy.response
+      });
     });
   });
 });

@@ -17,11 +17,11 @@ class LoginService {
     if (!isValid) return null;
 
     const accessToken = await this.tokenGenerator.generate({ value: user.id });
-    const authenticationModel = this.authenticationSerializer.serialize({
+    const authenticationModel = {
       id: user.id,
       email: user.email,
       accessToken
-    });
+    };
 
     return authenticationModel;
   }
