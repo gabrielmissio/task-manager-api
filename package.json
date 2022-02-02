@@ -39,6 +39,7 @@
     "husky": "7.0.4",
     "jest": "27.4.7",
     "prettier": "2.5.1",
+    "serverless-offline": "8.4.0",
     "supertest": "6.2.2"
   },
   "dependencies": {
