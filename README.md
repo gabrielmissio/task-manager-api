@@ -25,10 +25,10 @@ npm run start-dynamodb
 ```
 
 
-#### Run tests
+### Run tests
 
   
-##### Unit Tests
+#### Unit Tests
 
 
 ```bash
@@ -38,7 +38,7 @@ npm run test-unit
 ```
 
 
-##### Integration Tests
+#### Integration Tests
 
 
 ```bash
@@ -48,7 +48,7 @@ npm run test-integration
 ```
 
 
-##### Feature Tests  
+#### Feature Tests  
 
 
 ```bash
@@ -58,7 +58,7 @@ npm run test-feature
 ```
 
 
-##### Coverage Tests  (  performs all the above tests)
+#### Coverage Tests  (  performs all the above tests)
 
 
 ```bash
@@ -78,7 +78,7 @@ npm run start-dynamodb-migrations
 ```
 
 
-#### Run databa seeders
+### Run databa seeders
 
   
 
@@ -89,7 +89,7 @@ npm run start-dynamodb-seeders
 ```
 
 
-#### Start API
+### Start API
 
 ```bash
 
