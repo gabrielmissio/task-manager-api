@@ -12,6 +12,9 @@
     "pretest-feature": "npm run start-dynamodb-migrations",
     "test-feature": "npm test -- -c jest-feature-config.js",
     "posttest-feature": "npm run undo-dynamodb-migrations",
+    "pretest-coverage": "npm run start-dynamodb-migrations",
+    "test-coverage": "npm test -- coverage",
+    "posttest-coverage": "npm run undo-dynamodb-migrations",
     "start-dynamodb": "docker compose up",
     "stop-dynamodb": "docker compose down",
     "start-dynamodb-migrations": "node src/infra/db/dynamodb/migrations/create-task-manager.js start",
@@ -21,6 +24,7 @@
     "dynamodb-scan": "aws dynamodb scan --table-name task-manager  --endpoint-url http://localhost:8000",
     "prepare": "husky install",
     "lint": "npx eslint .",
+    "start-dev": "sls offline start --stage dev",
     "start": "node index.js"
   },
   "repository": {
