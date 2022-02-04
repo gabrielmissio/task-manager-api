@@ -72,5 +72,23 @@ describe(`Given the ${getRoute()} route`, () => {
         expect(response.status).toBe(404);
       });
     });
+
+    describe('And an existing userId is provided', () => {
+      let response;
+      beforeAll(async () => {
+        const token = await authenticationHelper.getAccessToken();
+        const authorization = `Bearer ${token}`;
+
+        const userFake = await authenticationHelper.getUser();
+        response = await request(app)
+          .get(getRoute({ userId: userFake.profile.PK.replace('USER#', '') }))
+          .set({ authorization })
+          .send({});
+      });
+
+      test('Then I expect it retuns status code 200', async () => {
+        expect(response.status).toBe(200);
+      });
+    });
   });
 });
