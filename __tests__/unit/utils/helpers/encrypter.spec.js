@@ -53,7 +53,7 @@ describe('Given the Encrypter', () => {
     });
 
     describe('And calls compare method of bcryptjs', () => {
-      test('Then I expect it calls compare method of bcryptjs with expected params', async () => {
+      test('Then I expect it calls compare method with the expected params', async () => {
         const { sut } = makeSut();
         const params = {
           value: DataFakerHelper.getString(),
@@ -61,8 +61,8 @@ describe('Given the Encrypter', () => {
         };
         await sut.compare(params);
 
-        expect(bcryptjs.value).toBe(params.value);
-        expect(bcryptjs.hash).toBe(params.hash);
+        expect(bcryptjs.params.value).toBe(params.value);
+        expect(bcryptjs.params.hash).toBe(params.hash);
       });
     });
   });
@@ -74,6 +74,20 @@ describe('Given the Encrypter', () => {
         const promise = sut.hash({});
 
         await expect(promise).rejects.toThrow(new MissingParamError('value'));
+      });
+    });
+
+    describe('And calls hash method of bcryptjs', () => {
+      test('Then I expect it calls hash method with the expected params', async () => {
+        const { sut } = makeSut();
+        const params = {
+          value: DataFakerHelper.getString(),
+          saltRounds: DataFakerHelper.getInteger({ min: 5, max: 15 })
+        };
+        await sut.hash(params);
+
+        expect(bcryptjs.params.value).toBe(params.value);
+        expect(bcryptjs.params.saltRounds).toBe(params.saltRounds);
       });
     });
   });
