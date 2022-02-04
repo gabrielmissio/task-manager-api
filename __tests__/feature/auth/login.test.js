@@ -5,6 +5,10 @@ const app = require('../../../src/main/confing/app');
 const { DataFakerHelper, ProfileDataFaker } = require('../../helpers');
 const { DynamodbClient } = require('../../../src/infra/db/dynamodb/helpers');
 const { TASK_MANAGER_TABLE_NAME } = require('../../../src/main/confing/env');
+const { Encrypter } = require('../../../src/utils/helpers');
+
+jest.unmock('jsonwebtoken');
+jest.unmock('bcryptjs');
 
 const makeRequestBody = (profileFake = {}) => ({
   email: profileFake.email || DataFakerHelper.getEmail(),
@@ -62,7 +66,10 @@ describe(`Given the ${ROUTE} route`, () => {
       let response;
       const profileFake = ProfileDataFaker.getProfile();
       const requestBody = makeRequestBody(profileFake);
+
       beforeAll(async () => {
+        profileFake.password = await new Encrypter().hash({ value: profileFake.password });
+
         await DynamodbClient.put({
           TableName: TASK_MANAGER_TABLE_NAME,
           Item: profileFake
