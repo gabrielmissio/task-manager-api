@@ -13,7 +13,7 @@
     "test-feature": "npm test -- -c jest-feature-config.js",
     "posttest-feature": "npm run undo-dynamodb-migrations",
     "pretest-coverage": "npm run start-dynamodb-migrations",
-    "test-coverage": "npm test -- coverage",
+    "test-coverage": "npm test -- --coverage",
     "posttest-coverage": "npm run undo-dynamodb-migrations",
     "start-dynamodb": "docker compose up",
     "stop-dynamodb": "docker compose down",
