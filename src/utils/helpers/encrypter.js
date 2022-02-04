@@ -10,6 +10,10 @@ class Encrypter {
     const isValid = await bcryptjs.compare(value, hash);
     return isValid;
   }
+
+  async hash() {
+    throw new MissingParamError('value');
+  }
 }
 
 module.exports = Encrypter;
