@@ -7,6 +7,7 @@ const { TASK_MANAGER_TABLE_NAME, SECRET } = require('../../src/main/confing/env'
 class AuthenticationHelper {
   constructor() {
     this.user = null;
+    this.token = null;
   }
 
   async createNewUser() {
@@ -33,11 +34,12 @@ class AuthenticationHelper {
     return this.user;
   }
 
-  async getAccessTokem() {
+  async getAccessToken() {
+    if (this.token) return this.token;
     if (!this.user) await this.createNewUser();
 
-    const token = JWT.sign({ userId: this.user.profile.PK.replace('USER#', '') }, SECRET);
-    return token;
+    this.token = JWT.sign({ userId: this.user.profile.PK.replace('USER#', '') }, SECRET);
+    return this.token;
   }
 }
 
