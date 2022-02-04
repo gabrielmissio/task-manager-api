@@ -11,25 +11,17 @@ class AuthenticationHelper {
 
   async createNewUser() {
     this.user = UserDataFaker.getUser();
-
-    await Promise.all([
+    const putData = async (item) =>
       DynamodbClient.put({
         TableName: TASK_MANAGER_TABLE_NAME,
-        Item: this.user.profile
-      }),
+        Item: item
+      });
 
-      this.user.books.map((book) =>
-        DynamodbClient.put({
-          TableName: TASK_MANAGER_TABLE_NAME,
-          Item: book
-        })
-      ),
-      this.user.tasks.map((task) =>
-        DynamodbClient.put({
-          TableName: TASK_MANAGER_TABLE_NAME,
-          Item: task
-        })
-      )
+    await Promise.all([
+      putData(this.user.profile),
+
+      this.user.books.map((book) => putData(book)),
+      this.user.tasks.map((task) => putData(task))
     ]);
 
     return this.user;
