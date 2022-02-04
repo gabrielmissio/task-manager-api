@@ -2,7 +2,7 @@ const ROUTE = '/user/:userId/book';
 const request = require('supertest');
 
 const app = require('../../../src/main/confing/app');
-const { AuthenticationHelper } = require('../../helpers');
+const { AuthenticationHelper, DataFakerHelper } = require('../../helpers');
 
 const getRoute = ({ userId } = { userId: ':userId' }) => ROUTE.replace(':userId', userId);
 const authenticationHelper = new AuthenticationHelper();
@@ -42,7 +42,7 @@ describe(`Given the ${getRoute()} route`, () => {
     describe('And an invalid userId is provided', () => {
       let response;
       beforeAll(async () => {
-        const token = await authenticationHelper.getAccessTokem();
+        const token = await authenticationHelper.getAccessToken();
         const authorization = `Bearer ${token}`;
 
         response = await request(app)
@@ -53,6 +53,23 @@ describe(`Given the ${getRoute()} route`, () => {
 
       test('Then I expect it retuns status code 400', async () => {
         expect(response.status).toBe(400);
+      });
+    });
+
+    describe('And a non-existing userId is provided', () => {
+      let response;
+      beforeAll(async () => {
+        const token = await authenticationHelper.getAccessToken();
+        const authorization = `Bearer ${token}`;
+
+        response = await request(app)
+          .get(getRoute({ userId: DataFakerHelper.getUUID() }))
+          .set({ authorization })
+          .send({});
+      });
+
+      test('Then I expect it retuns status code 404', async () => {
+        expect(response.status).toBe(404);
       });
     });
   });
