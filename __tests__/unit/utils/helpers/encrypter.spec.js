@@ -90,5 +90,20 @@ describe('Given the Encrypter', () => {
         expect(bcryptjs.params.saltRounds).toBe(params.saltRounds);
       });
     });
+
+    describe('And no saltRounds is provided', () => {
+      const DEFAULT_SALT_ROUNDS = 10;
+
+      test(`Then I expect it sets saltRounds as ${DEFAULT_SALT_ROUNDS} by default`, async () => {
+        const { sut } = makeSut();
+        const params = {
+          value: DataFakerHelper.getString()
+        };
+        await sut.hash(params);
+
+        expect(bcryptjs.params.value).toBe(params.value);
+        expect(bcryptjs.params.saltRounds).toBe(DEFAULT_SALT_ROUNDS);
+      });
+    });
   });
 });

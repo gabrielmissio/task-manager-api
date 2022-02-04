@@ -11,7 +11,7 @@ class Encrypter {
     return isValid;
   }
 
-  async hash({ value, saltRounds }) {
+  async hash({ value, saltRounds = 10 }) {
     if (!value) throw new MissingParamError('value');
 
     await bcryptjs.hash(value, saltRounds);
