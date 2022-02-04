@@ -19,5 +19,19 @@ describe(`Given the ${getRoute()} route`, () => {
         expect(response.status).toBe(401);
       });
     });
+
+    describe('And an invalid authorization header is provided', () => {
+      let response;
+      beforeAll(async () => {
+        response = await request(app)
+          .get(getRoute({ userId: 'any_userId' }))
+          .set({ authorization: 'Bearer' })
+          .send({});
+      });
+
+      test('Then I expect it retuns status code 401', async () => {
+        expect(response.status).toBe(401);
+      });
+    });
   });
 });
