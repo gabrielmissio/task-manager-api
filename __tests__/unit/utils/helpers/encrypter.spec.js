@@ -78,16 +78,23 @@ describe('Given the Encrypter', () => {
     });
 
     describe('And calls hash method of bcryptjs', () => {
-      test('Then I expect it calls hash method with the expected params', async () => {
+      let response;
+      const params = {
+        value: DataFakerHelper.getString(),
+        saltRounds: DataFakerHelper.getInteger({ min: 5, max: 15 })
+      };
+      beforeAll(async () => {
         const { sut } = makeSut();
-        const params = {
-          value: DataFakerHelper.getString(),
-          saltRounds: DataFakerHelper.getInteger({ min: 5, max: 15 })
-        };
-        await sut.hash(params);
+        response = await sut.hash(params);
+      });
 
+      test('Then I expect it calls hash method with the expected params', async () => {
         expect(bcryptjs.params.value).toBe(params.value);
         expect(bcryptjs.params.saltRounds).toBe(params.saltRounds);
+      });
+
+      test('Then I expect it returns the value returned by the hash method', async () => {
+        expect(response).toBe(bcryptjs.response);
       });
     });
 
