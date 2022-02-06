@@ -31,7 +31,7 @@ Lorem Ipsum is simply dummy text of the printing and typesetting industry.
  - [Husky](https://www.npmjs.com/package/husky)
  - [ESLint](https://www.npmjs.com/package/eslint)
  - [Jest](https://www.npmjs.com/package/jest)
- - [Joi](https://www.npmjs.com/package/jest)
+ - [Joi](https://www.npmjs.com/package/joi)
  - ...
 
 
