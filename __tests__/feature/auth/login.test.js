@@ -77,6 +77,16 @@ describe(`Given the ${ROUTE} route`, () => {
         response = await request(app).post(ROUTE).send(requestBody);
       });
 
+      afterAll(async () => {
+        await DynamodbClient.delete({
+          TableName: TASK_MANAGER_TABLE_NAME,
+          Key: {
+            PK: profileFake.PK,
+            SK: profileFake.SK
+          }
+        });
+      });
+
       test('Then I expect it retuns statud code 200', async () => {
         expect(response.status).toBe(200);
       });
