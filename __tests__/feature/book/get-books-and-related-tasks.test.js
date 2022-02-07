@@ -74,6 +74,25 @@ describe(`Given the ${getRoute()} route`, () => {
     });
 
     describe('And an existing userId is provided', () => {
+      describe('And a not allowed request is performed', () => {
+        let response;
+        beforeAll(async () => {
+          const token = await authenticationHelper.getAccessToken();
+          const authorization = `Bearer ${token}`;
+
+          await authenticationHelper.createNewUser();
+          const userFake = await authenticationHelper.getUser();
+          response = await request(app)
+            .get(getRoute({ userId: userFake.profile.PK.replace('USER#', '') }))
+            .set({ authorization })
+            .send({});
+        });
+
+        test('Then I expect it retuns status code 403', async () => {
+          expect(response.status).toBe(403);
+        });
+      });
+
       describe('And an allowed request is performed', () => {
         describe('And the provided user has at least one book and task', () => {
           let response;
@@ -116,7 +135,6 @@ describe(`Given the ${getRoute()} route`, () => {
       });
     });
 
-    // TODO: add test to ensure returns statusCode 403 when try to perform a not allowed request
     // TODO: add test to ensure returns an empty array when the provided userId does not have any book or task
   });
 });

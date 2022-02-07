@@ -12,6 +12,8 @@ class AuthenticationHelper {
 
   async createNewUser() {
     this.user = UserDataFaker.getUser();
+    this.token = null;
+
     const putData = async (item) =>
       DynamodbClient.put({
         TableName: TASK_MANAGER_TABLE_NAME,
