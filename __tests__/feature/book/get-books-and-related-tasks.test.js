@@ -20,7 +20,7 @@ describe(`Given the ${getRoute()} route`, () => {
           .send({});
       });
 
-      test('Then I expect it retuns status code 401', async () => {
+      test('Then I expect it returns status code 401', () => {
         expect(response.status).toBe(401);
       });
     });
@@ -34,7 +34,7 @@ describe(`Given the ${getRoute()} route`, () => {
           .send({});
       });
 
-      test('Then I expect it retuns status code 401', async () => {
+      test('Then I expect it returns status code 401', () => {
         expect(response.status).toBe(401);
       });
     });
@@ -51,7 +51,7 @@ describe(`Given the ${getRoute()} route`, () => {
           .send({});
       });
 
-      test('Then I expect it retuns status code 400', async () => {
+      test('Then I expect it returns status code 400', () => {
         expect(response.status).toBe(400);
       });
     });
@@ -68,7 +68,7 @@ describe(`Given the ${getRoute()} route`, () => {
           .send({});
       });
 
-      test('Then I expect it retuns status code 404', async () => {
+      test('Then I expect it returns status code 404', () => {
         expect(response.status).toBe(404);
       });
     });
@@ -88,15 +88,16 @@ describe(`Given the ${getRoute()} route`, () => {
             .send({});
         });
 
-        test('Then I expect it retuns status code 403', async () => {
+        test('Then I expect it returns status code 403', () => {
           expect(response.status).toBe(403);
         });
       });
 
       describe('And an allowed request is performed', () => {
-        describe('And the provided user has at least one book and task', () => {
+        describe('And the provided user has no book or task', () => {
           let response;
           beforeAll(async () => {
+            await authenticationHelper.createNewUser({ hasBook: false, hasTask: false });
             const token = await authenticationHelper.getAccessToken();
             const authorization = `Bearer ${token}`;
 
@@ -107,11 +108,34 @@ describe(`Given the ${getRoute()} route`, () => {
               .send({});
           });
 
-          test('Then I expect it retuns status code 200', async () => {
+          test('Then I expect it returns status code 200', () => {
             expect(response.status).toBe(200);
           });
 
-          test('Then I expect it returns the body with expected fields and types', async () => {
+          test('Then I expect it returns the body with an empty array', () => {
+            expect(response.body).toEqual([]);
+          });
+        });
+
+        describe('And the provided user has at least one book and task', () => {
+          let response;
+          beforeAll(async () => {
+            await authenticationHelper.createNewUser();
+            const token = await authenticationHelper.getAccessToken();
+            const authorization = `Bearer ${token}`;
+
+            const userFake = await authenticationHelper.getUser();
+            response = await request(app)
+              .get(getRoute({ userId: userFake.profile.PK.replace('USER#', '') }))
+              .set({ authorization })
+              .send({});
+          });
+
+          test('Then I expect it returns status code 200', () => {
+            expect(response.status).toBe(200);
+          });
+
+          test('Then I expect it returns the body with expected fields and types', () => {
             expect(response.body).toEqual(
               expect.arrayContaining([
                 expect.objectContaining({
@@ -134,7 +158,5 @@ describe(`Given the ${getRoute()} route`, () => {
         });
       });
     });
-
-    // TODO: add test to ensure returns an empty array when the provided userId does not have any book or task
   });
 });

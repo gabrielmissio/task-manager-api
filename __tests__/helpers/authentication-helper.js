@@ -10,7 +10,7 @@ class AuthenticationHelper {
     this.token = null;
   }
 
-  async createNewUser() {
+  async createNewUser({ hasBook = true, hasTask = true } = {}) {
     this.user = UserDataFaker.getUser();
     this.token = null;
 
@@ -23,8 +23,8 @@ class AuthenticationHelper {
     await Promise.all([
       putData(this.user.profile),
 
-      this.user.books.map((book) => putData(book)),
-      this.user.tasks.map((task) => putData(task))
+      hasBook && this.user.books.map((book) => putData(book)),
+      hasTask && this.user.tasks.map((task) => putData(task))
     ]);
 
     return this.user;
