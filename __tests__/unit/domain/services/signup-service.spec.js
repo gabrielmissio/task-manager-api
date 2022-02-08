@@ -1,10 +1,12 @@
 const { MissingParamError } = require('../../../../src/utils/errors');
 
 class SignupService {
-  async handler({ name, email }) {
+  async handler({ name, email, password }) {
     if (!name) throw new MissingParamError('name');
     if (!email) throw new MissingParamError('email');
-    throw new MissingParamError('password');
+    if (!password) throw new MissingParamError('password');
+
+    this.getProfileByEmailRepository.get();
   }
 }
 
@@ -44,6 +46,21 @@ describe('Given the SignupService', () => {
       const promise = sut.handler(params);
 
       await expect(promise).rejects.toThrow(new MissingParamError('password'));
+    });
+  });
+
+  describe('And the getProfileByEmailRepository dependency is not injected', () => {
+    test('Then I expect it throws an error', async () => {
+      const sut = new SignupService();
+      const params = {
+        name: 'any_name',
+        email: 'any_email',
+        password: 'any_password'
+      };
+
+      const promise = sut.handler(params);
+
+      await expect(promise).rejects.toThrow(new Error("Cannot read property 'get' of undefined"));
     });
   });
 });
