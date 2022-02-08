@@ -1,8 +1,9 @@
 const { MissingParamError } = require('../../../../src/utils/errors');
 
 class SignupService {
-  async handler() {
-    throw new MissingParamError('name');
+  async handler({ name }) {
+    if (!name) throw new MissingParamError('name');
+    throw new MissingParamError('email');
   }
 }
 
@@ -19,6 +20,16 @@ describe('Given the SignupService', () => {
       const promise = sut.handler({});
 
       await expect(promise).rejects.toThrow(new MissingParamError('name'));
+    });
+  });
+
+  describe('And no email is provided', () => {
+    test('Then I expect it throws a new MissingParamError', async () => {
+      const { sut } = makeSut();
+      const params = { name: 'any_name' };
+      const promise = sut.handler(params);
+
+      await expect(promise).rejects.toThrow(new MissingParamError('email'));
     });
   });
 });
