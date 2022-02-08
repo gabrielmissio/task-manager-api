@@ -1,18 +1,18 @@
-const { LoginControllerBodySchema } = require('../../../../../src/presentation/validations/schemas');
+const { LoginBodySchema } = require('../../../../../src/presentation/validations/schemas');
 const { DataFakerHelper } = require('../../../../helpers');
 const {
   ErrorMessagesEnum: { INVALID_PASSWORD, PASSWORD_RULES }
 } = require('../../../../../src/utils/enums');
 
 const makeSut = () => {
-  const sut = LoginControllerBodySchema;
+  const sut = LoginBodySchema;
 
   return {
     sut
   };
 };
 
-describe('Given the LoginControllerBodySchema', () => {
+describe('Given the LoginBodySchema', () => {
   describe('And no email is provided', () => {
     test('Then I expect it returns "email" is required in the error message', () => {
       const { sut } = makeSut();
