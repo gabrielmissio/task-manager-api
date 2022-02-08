@@ -11,9 +11,21 @@ class SignupService {
     if (!email) throw new MissingParamError('email');
     if (!password) throw new MissingParamError('password');
 
-    await this.getProfileByEmailRepository.get();
+    await this.getProfileByEmailRepository.get({ email });
   }
 }
+
+const makeGetProfileByEmailRepositorySpy = () => {
+  class GetProfileByEmailRepositorySpy {
+    async get({ email }) {
+      this.email = email;
+
+      return this.response;
+    }
+  }
+
+  return new GetProfileByEmailRepositorySpy();
+};
 
 const makeGetProfileByEmailRepositorySpyWithError = () => {
   class GetProfileByEmailRepositorySpyWithError {
@@ -27,9 +39,15 @@ const makeGetProfileByEmailRepositorySpyWithError = () => {
 };
 
 const makeSut = () => {
-  const sut = new SignupService();
+  const getProfileByEmailRepositorySpy = makeGetProfileByEmailRepositorySpy();
+  getProfileByEmailRepositorySpy.response = DataFakerHelper.getObject();
 
-  return { sut };
+  const sut = new SignupService({ getProfileByEmailRepository: getProfileByEmailRepositorySpy });
+
+  return {
+    sut,
+    getProfileByEmailRepositorySpy
+  };
 };
 
 describe('Given the SignupService', () => {
@@ -95,7 +113,7 @@ describe('Given the SignupService', () => {
     });
   });
 
-  describe('And the getProfileByEmailRepository throws an error', () => {
+  describe('And the getProfileByEmailRepository dependency throws an error', () => {
     test('Then I expect it throws an error', async () => {
       const getProfileByEmailRepositorySpyWithError = makeGetProfileByEmailRepositorySpyWithError();
       const sut = new SignupService({ getProfileByEmailRepository: getProfileByEmailRepositorySpyWithError });
@@ -108,6 +126,21 @@ describe('Given the SignupService', () => {
       const promise = sut.handler(params);
 
       await expect(promise).rejects.toThrow(getProfileByEmailRepositorySpyWithError.errorMessage);
+    });
+  });
+
+  describe('And the getProfileByEmailRepository dependency is injected correctly', () => {
+    test('Then I expect it call the get method with the expected params', async () => {
+      const { sut, getProfileByEmailRepositorySpy } = makeSut();
+      const params = {
+        name: 'any_name',
+        email: DataFakerHelper.getEmail(),
+        password: 'any_password'
+      };
+
+      await sut.handler(params);
+
+      await expect(getProfileByEmailRepositorySpy.email).toBe(params.email);
     });
   });
 });
