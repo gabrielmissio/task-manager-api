@@ -1,6 +1,10 @@
 const { MissingParamError } = require('../../../../src/utils/errors');
 
 class SignupService {
+  constructor({ getProfileByEmailRepository } = {}) {
+    this.getProfileByEmailRepository = getProfileByEmailRepository;
+  }
+
   async handler({ name, email, password }) {
     if (!name) throw new MissingParamError('name');
     if (!email) throw new MissingParamError('email');
@@ -61,6 +65,21 @@ describe('Given the SignupService', () => {
       const promise = sut.handler(params);
 
       await expect(promise).rejects.toThrow(new Error("Cannot read property 'get' of undefined"));
+    });
+  });
+
+  describe('And the getProfileByEmailRepository dependency has get method', () => {
+    test('Then I expect it throws an error', async () => {
+      const sut = new SignupService({ getProfileByEmailRepository: {} });
+      const params = {
+        name: 'any_name',
+        email: 'any_email',
+        password: 'any_password'
+      };
+
+      const promise = sut.handler(params);
+
+      await expect(promise).rejects.toThrow(new Error('this.getProfileByEmailRepository.get is not a function'));
     });
   });
 });
