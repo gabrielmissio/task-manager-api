@@ -1,4 +1,5 @@
 const { MissingParamError } = require('../../../../src/utils/errors');
+const { DataFakerHelper } = require('../../../helpers');
 
 class SignupService {
   constructor({ getProfileByEmailRepository } = {}) {
@@ -10,9 +11,20 @@ class SignupService {
     if (!email) throw new MissingParamError('email');
     if (!password) throw new MissingParamError('password');
 
-    this.getProfileByEmailRepository.get();
+    await this.getProfileByEmailRepository.get();
   }
 }
+
+const makeGetProfileByEmailRepositorySpyWithError = () => {
+  class GetProfileByEmailRepositorySpyWithError {
+    async get() {
+      this.errorMessage = DataFakerHelper.getSentence({ words: 3 });
+      throw new Error(this.errorMessage);
+    }
+  }
+
+  return new GetProfileByEmailRepositorySpyWithError();
+};
 
 const makeSut = () => {
   const sut = new SignupService();
@@ -80,6 +92,22 @@ describe('Given the SignupService', () => {
       const promise = sut.handler(params);
 
       await expect(promise).rejects.toThrow(new Error('this.getProfileByEmailRepository.get is not a function'));
+    });
+  });
+
+  describe('And the getProfileByEmailRepository throws an error', () => {
+    test('Then I expect it throws an error', async () => {
+      const getProfileByEmailRepositorySpyWithError = makeGetProfileByEmailRepositorySpyWithError();
+      const sut = new SignupService({ getProfileByEmailRepository: getProfileByEmailRepositorySpyWithError });
+      const params = {
+        name: 'any_name',
+        email: 'any_email',
+        password: 'any_password'
+      };
+
+      const promise = sut.handler(params);
+
+      await expect(promise).rejects.toThrow(getProfileByEmailRepositorySpyWithError.errorMessage);
     });
   });
 });
