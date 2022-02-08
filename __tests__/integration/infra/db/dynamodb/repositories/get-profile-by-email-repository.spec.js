@@ -54,7 +54,7 @@ describe('Given the GetProfileByEmailRepository', () => {
       const { sut } = makeSut();
       const response = await sut.get({ email: profileFake.email });
 
-      expect(response).toEqual(ProfileFactory.buildExistingProfile(profileFake));
+      expect(response).toEqual(ProfileFactory.buildProfile(profileFake));
     });
   });
 });

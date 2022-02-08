@@ -1,5 +1,5 @@
 class ProfileFactory {
-  static buildExistingProfile(payload) {
+  static buildProfile(payload) {
     return {
       id: payload.PK.replace('USER#', ''),
       name: payload.name,

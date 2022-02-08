@@ -11,7 +11,7 @@ class GetProfileByEmailRepository {
     const userNotFound = dynamodbResponse.Count < 1;
     if (userNotFound) return null;
 
-    const profile = ProfileFactory.buildExistingProfile(dynamodbResponse.Items[0]);
+    const profile = ProfileFactory.buildProfile(dynamodbResponse.Items[0]);
     return profile;
   }
 

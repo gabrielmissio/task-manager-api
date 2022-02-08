@@ -54,7 +54,7 @@ describe('Given the GetProfileByUserIdRepository', () => {
       const { sut } = makeSut();
       const response = await sut.get({ userId: profileFake.PK.replace('USER#', '') });
 
-      expect(response).toEqual(ProfileFactory.buildExistingProfile(profileFake));
+      expect(response).toEqual(ProfileFactory.buildProfile(profileFake));
     });
   });
 });
