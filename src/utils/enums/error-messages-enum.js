@@ -3,7 +3,8 @@ const ErrorMessagesEnum = {
   INVALID_ID: 'Invalid ID',
   PASSWORD_RULES:
     'Password must contain at least 8 characters one uppercase letter one lowercase letter one number and one special character',
-  USER_NOT_FOUND: 'User not found'
+  USER_NOT_FOUND: 'User not found',
+  USER_ALREADY_EXISTS: 'User already exists'
 };
 
 module.exports = Object.freeze(ErrorMessagesEnum);
