@@ -19,7 +19,7 @@ class SignupService {
     const userExists = await this.getProfileByEmailRepository.get({ email });
     if (userExists) throw new ConflictError(USER_ALREADY_EXISTS);
 
-    await this.createProfileRepository.create();
+    await this.createProfileRepository.create({ name, email, password });
   }
 }
 
@@ -46,15 +46,34 @@ const makeGetProfileByEmailRepositorySpyWithError = () => {
   return new GetProfileByEmailRepositorySpyWithError();
 };
 
+const makeCreateProfileRepositorySpy = () => {
+  class CreateProfileRepositorySpy {
+    async create(payload) {
+      this.params = payload;
+
+      return this.response;
+    }
+  }
+
+  return new CreateProfileRepositorySpy();
+};
+
 const makeSut = () => {
   const getProfileByEmailRepositorySpy = makeGetProfileByEmailRepositorySpy();
   getProfileByEmailRepositorySpy.response = null;
 
-  const sut = new SignupService({ getProfileByEmailRepository: getProfileByEmailRepositorySpy });
+  const createProfileRepositorySpy = makeCreateProfileRepositorySpy();
+  createProfileRepositorySpy.response = DataFakerHelper.getObject();
+
+  const sut = new SignupService({
+    getProfileByEmailRepository: getProfileByEmailRepositorySpy,
+    createProfileRepository: createProfileRepositorySpy
+  });
 
   return {
     sut,
-    getProfileByEmailRepositorySpy
+    getProfileByEmailRepositorySpy,
+    createProfileRepositorySpy
   };
 };
 
@@ -205,6 +224,22 @@ describe('Given the SignupService', () => {
       const promise = sut.handler(params);
 
       await expect(promise).rejects.toThrow(new Error('this.createProfileRepository.create is not a function'));
+    });
+  });
+
+  describe('And the createProfileRepository dependency is injected correctly', () => {
+    test('Then I expect it calls the create method with the expected params', async () => {
+      const { sut, createProfileRepositorySpy } = makeSut();
+
+      const params = {
+        name: DataFakerHelper.getString(),
+        email: DataFakerHelper.getEmail(),
+        password: DataFakerHelper.getPassword()
+      };
+
+      await sut.handler(params);
+
+      expect(createProfileRepositorySpy.params).toEqual(params);
     });
   });
 });
