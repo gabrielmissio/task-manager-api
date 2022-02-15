@@ -17,6 +17,8 @@ class SignupService {
 
     const userExists = await this.getProfileByEmailRepository.get({ email });
     if (userExists) throw new ConflictError(USER_ALREADY_EXISTS);
+
+    await this.createProfileRepository.create();
   }
 }
 
@@ -45,7 +47,7 @@ const makeGetProfileByEmailRepositorySpyWithError = () => {
 
 const makeSut = () => {
   const getProfileByEmailRepositorySpy = makeGetProfileByEmailRepositorySpy();
-  getProfileByEmailRepositorySpy.response = DataFakerHelper.getObject();
+  getProfileByEmailRepositorySpy.response = null;
 
   const sut = new SignupService({ getProfileByEmailRepository: getProfileByEmailRepositorySpy });
 
@@ -151,7 +153,9 @@ describe('Given the SignupService', () => {
 
   describe('And the get method of getProfileByEmailRepository dependency returns a profile', () => {
     test('Then I expect it throws a new ConflictErrror with a message indicating that the user already exists', async () => {
-      const { sut } = makeSut();
+      const { sut, getProfileByEmailRepositorySpy } = makeSut();
+      getProfileByEmailRepositorySpy.response = true;
+
       const params = {
         name: 'any_name',
         email: DataFakerHelper.getEmail(),
@@ -161,6 +165,25 @@ describe('Given the SignupService', () => {
       const promise = sut.handler(params);
 
       await expect(promise).rejects.toThrow(new ConflictError(USER_ALREADY_EXISTS));
+    });
+  });
+
+  describe('And the createProfileRepository dependency is not injected', () => {
+    test('Then I expect it throws an error', async () => {
+      const { getProfileByEmailRepositorySpy } = makeSut();
+      const sut = new SignupService({
+        getProfileByEmailRepository: getProfileByEmailRepositorySpy
+      });
+
+      const params = {
+        name: 'any_name',
+        email: 'any_email',
+        password: 'any_password'
+      };
+
+      const promise = sut.handler(params);
+
+      await expect(promise).rejects.toThrow(new Error("Cannot read property 'create' of undefined"));
     });
   });
 });
