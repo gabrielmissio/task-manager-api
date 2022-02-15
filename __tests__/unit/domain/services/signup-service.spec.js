@@ -19,7 +19,8 @@ class SignupService {
     const userExists = await this.getProfileByEmailRepository.get({ email });
     if (userExists) throw new ConflictError(USER_ALREADY_EXISTS);
 
-    await this.createProfileRepository.create({ name, email, password });
+    const profile = await this.createProfileRepository.create({ name, email, password });
+    return profile;
   }
 }
 
@@ -228,18 +229,24 @@ describe('Given the SignupService', () => {
   });
 
   describe('And the createProfileRepository dependency is injected correctly', () => {
+    let response;
+    const { sut, createProfileRepositorySpy } = makeSut();
+    const params = {
+      name: DataFakerHelper.getString(),
+      email: DataFakerHelper.getEmail(),
+      password: DataFakerHelper.getPassword()
+    };
+
+    beforeAll(async () => {
+      response = await sut.handler(params);
+    });
+
     test('Then I expect it calls the create method with the expected params', async () => {
-      const { sut, createProfileRepositorySpy } = makeSut();
-
-      const params = {
-        name: DataFakerHelper.getString(),
-        email: DataFakerHelper.getEmail(),
-        password: DataFakerHelper.getPassword()
-      };
-
-      await sut.handler(params);
-
       expect(createProfileRepositorySpy.params).toEqual(params);
+    });
+
+    test('Then I expect it returns the return of the create method', async () => {
+      expect(response).toEqual(createProfileRepositorySpy.response);
     });
   });
 });
