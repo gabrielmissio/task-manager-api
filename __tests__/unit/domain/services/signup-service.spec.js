@@ -6,8 +6,9 @@ const { ConflictError } = require('../../../../src/domain/errors');
 const { DataFakerHelper } = require('../../../helpers');
 
 class SignupService {
-  constructor({ getProfileByEmailRepository } = {}) {
+  constructor({ getProfileByEmailRepository, createProfileRepository } = {}) {
     this.getProfileByEmailRepository = getProfileByEmailRepository;
+    this.createProfileRepository = createProfileRepository;
   }
 
   async handler({ name, email, password }) {
@@ -184,6 +185,26 @@ describe('Given the SignupService', () => {
       const promise = sut.handler(params);
 
       await expect(promise).rejects.toThrow(new Error("Cannot read property 'create' of undefined"));
+    });
+  });
+
+  describe('And the createProfileRepository dependency has no create method', () => {
+    test('Then I expect it throws an error', async () => {
+      const { getProfileByEmailRepositorySpy } = makeSut();
+      const sut = new SignupService({
+        getProfileByEmailRepository: getProfileByEmailRepositorySpy,
+        createProfileRepository: {}
+      });
+
+      const params = {
+        name: 'any_name',
+        email: 'any_email',
+        password: 'any_password'
+      };
+
+      const promise = sut.handler(params);
+
+      await expect(promise).rejects.toThrow(new Error('this.createProfileRepository.create is not a function'));
     });
   });
 });
