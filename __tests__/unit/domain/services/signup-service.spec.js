@@ -1,4 +1,8 @@
 const { MissingParamError } = require('../../../../src/utils/errors');
+const {
+  ErrorMessagesEnum: { USER_ALREADY_EXISTS }
+} = require('../../../../src/utils/enums');
+const { ConflictError } = require('../../../../src/domain/errors');
 const { DataFakerHelper } = require('../../../helpers');
 
 class SignupService {
@@ -11,7 +15,8 @@ class SignupService {
     if (!email) throw new MissingParamError('email');
     if (!password) throw new MissingParamError('password');
 
-    await this.getProfileByEmailRepository.get({ email });
+    const userExists = await this.getProfileByEmailRepository.get({ email });
+    if (userExists) throw new ConflictError(USER_ALREADY_EXISTS);
   }
 }
 
@@ -130,7 +135,7 @@ describe('Given the SignupService', () => {
   });
 
   describe('And the getProfileByEmailRepository dependency is injected correctly', () => {
-    test('Then I expect it call the get method with the expected params', async () => {
+    test('Then I expect it calls the get method with the expected params', async () => {
       const { sut, getProfileByEmailRepositorySpy } = makeSut();
       const params = {
         name: 'any_name',
@@ -138,9 +143,24 @@ describe('Given the SignupService', () => {
         password: 'any_password'
       };
 
-      await sut.handler(params);
+      await Promise.allSettled([sut.handler(params)]);
 
-      await expect(getProfileByEmailRepositorySpy.email).toBe(params.email);
+      expect(getProfileByEmailRepositorySpy.email).toBe(params.email);
+    });
+  });
+
+  describe('And the get method of getProfileByEmailRepository dependency returns a profile', () => {
+    test('Then I expect it throws a new ConflictErrror with a message indicating that the user already exists', async () => {
+      const { sut } = makeSut();
+      const params = {
+        name: 'any_name',
+        email: DataFakerHelper.getEmail(),
+        password: 'any_password'
+      };
+
+      const promise = sut.handler(params);
+
+      await expect(promise).rejects.toThrow(new ConflictError(USER_ALREADY_EXISTS));
     });
   });
 });
