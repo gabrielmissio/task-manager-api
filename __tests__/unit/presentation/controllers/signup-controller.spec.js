@@ -3,9 +3,13 @@ const { MissingParamError } = require('../../../../src/utils/errors');
 const { HttpResponse } = require('../../../../src/presentation/helpers');
 
 class SignupController {
-  async handler() {
+  async handler(httpRequest) {
     try {
-      throw new MissingParamError();
+      if (!httpRequest.body) throw new MissingParamError('body');
+
+      this.requestBodyValidator.validate();
+
+      return 0;
     } catch (error) {
       console.error(error);
       return HttpResponse.exceptionHandler(error);
@@ -45,6 +49,22 @@ describe('Given the SignupController', () => {
     test('Then I expect it returns statusCode 500', () => {
       expect(response.statusCode).toBe(500);
     });
+    test('Then I expect it returns the body with InternalServerError message', () => {
+      expect(response.body).toEqual({ error: new InternalServerError().message });
+    });
+  });
+
+  describe('And the requestBodyValidator dependency is not injected', () => {
+    let response;
+    beforeAll(async () => {
+      const sut = new SignupController();
+      response = await sut.handler({ body: {} });
+    });
+
+    test('Then I expect it returns statusCode 500', () => {
+      expect(response.statusCode).toBe(500);
+    });
+
     test('Then I expect it returns the body with InternalServerError message', () => {
       expect(response.body).toEqual({ error: new InternalServerError().message });
     });
