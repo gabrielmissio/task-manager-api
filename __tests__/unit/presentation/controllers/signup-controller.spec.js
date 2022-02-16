@@ -34,4 +34,19 @@ describe('Given the SignupController', () => {
       expect(response.body).toEqual({ error: new InternalServerError().message });
     });
   });
+
+  describe('And httpRequest has no body', () => {
+    let response;
+    beforeAll(async () => {
+      const { sut } = makeSut();
+      response = await sut.handler({});
+    });
+
+    test('Then I expect it returns statusCode 500', () => {
+      expect(response.statusCode).toBe(500);
+    });
+    test('Then I expect it returns the body with InternalServerError message', () => {
+      expect(response.body).toEqual({ error: new InternalServerError().message });
+    });
+  });
 });
