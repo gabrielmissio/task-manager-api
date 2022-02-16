@@ -3,6 +3,10 @@ const { MissingParamError } = require('../../../../src/utils/errors');
 const { HttpResponse } = require('../../../../src/presentation/helpers');
 
 class SignupController {
+  constructor({ requestBodyValidator } = {}) {
+    this.requestBodyValidator = requestBodyValidator;
+  }
+
   async handler(httpRequest) {
     try {
       if (!httpRequest.body) throw new MissingParamError('body');
@@ -58,6 +62,22 @@ describe('Given the SignupController', () => {
     let response;
     beforeAll(async () => {
       const sut = new SignupController();
+      response = await sut.handler({ body: {} });
+    });
+
+    test('Then I expect it returns statusCode 500', () => {
+      expect(response.statusCode).toBe(500);
+    });
+
+    test('Then I expect it returns the body with InternalServerError message', () => {
+      expect(response.body).toEqual({ error: new InternalServerError().message });
+    });
+  });
+
+  describe('And the requestBodyValidator dependency has no validate method', () => {
+    let response;
+    beforeAll(async () => {
+      const sut = new SignupController({ requestBodyValidator: {} });
       response = await sut.handler({ body: {} });
     });
 
