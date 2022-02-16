@@ -1,6 +1,7 @@
 const { InternalServerError } = require('../../../../src/presentation/errors');
 const { MissingParamError } = require('../../../../src/utils/errors');
 const { HttpResponse } = require('../../../../src/presentation/helpers');
+const { DataFakerHelper } = require('../../../helpers');
 
 class SignupController {
   constructor({ requestBodyValidator } = {}) {
@@ -11,7 +12,7 @@ class SignupController {
     try {
       if (!httpRequest.body) throw new MissingParamError('body');
 
-      this.requestBodyValidator.validate();
+      this.requestBodyValidator.validate(httpRequest.body);
 
       return 0;
     } catch (error) {
@@ -21,10 +22,29 @@ class SignupController {
   }
 }
 
-const makeSut = () => {
-  const sut = new SignupController();
+const makeRequestValidatorSpy = () => {
+  class RequestBodyValidatorSpy {
+    validate(params) {
+      this.params = params;
+      return this.response;
+    }
+  }
 
-  return { sut };
+  return new RequestBodyValidatorSpy();
+};
+
+const makeSut = () => {
+  const requestValidatorSpy = makeRequestValidatorSpy();
+  requestValidatorSpy.response = null;
+
+  const sut = new SignupController({
+    requestBodyValidator: requestValidatorSpy
+  });
+
+  return {
+    sut,
+    requestValidatorSpy
+  };
 };
 
 describe('Given the SignupController', () => {
@@ -87,6 +107,17 @@ describe('Given the SignupController', () => {
 
     test('Then I expect it returns the body with InternalServerError message', () => {
       expect(response.body).toEqual({ error: new InternalServerError().message });
+    });
+  });
+
+  describe('And the requestBodyValidator dependency is injected correctly', () => {
+    test('Then I expect it calls the validate method with the expected params', async () => {
+      const { sut, requestValidatorSpy } = makeSut();
+      const request = { body: DataFakerHelper.getString() };
+
+      await sut.handler(request);
+
+      expect(requestValidatorSpy.params).toEqual(request.body);
     });
   });
 });
