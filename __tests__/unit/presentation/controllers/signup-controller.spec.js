@@ -1,4 +1,4 @@
-const { InternalServerError } = require('../../../../src/presentation/errors');
+const { InternalServerError, InvalidRequestError } = require('../../../../src/presentation/errors');
 const { MissingParamError } = require('../../../../src/utils/errors');
 const { HttpResponse } = require('../../../../src/presentation/helpers');
 const { DataFakerHelper } = require('../../../helpers');
@@ -12,7 +12,8 @@ class SignupController {
     try {
       if (!httpRequest.body) throw new MissingParamError('body');
 
-      this.requestBodyValidator.validate(httpRequest.body);
+      const errors = this.requestBodyValidator.validate(httpRequest.body);
+      if (errors) return HttpResponse.badRequest(new InvalidRequestError(errors));
 
       return 0;
     } catch (error) {
@@ -22,7 +23,7 @@ class SignupController {
   }
 }
 
-const makeRequestValidatorSpy = () => {
+const makerequestBodyValidatorSpy = () => {
   class RequestBodyValidatorSpy {
     validate(params) {
       this.params = params;
@@ -34,16 +35,16 @@ const makeRequestValidatorSpy = () => {
 };
 
 const makeSut = () => {
-  const requestValidatorSpy = makeRequestValidatorSpy();
-  requestValidatorSpy.response = null;
+  const requestBodyValidatorSpy = makerequestBodyValidatorSpy();
+  requestBodyValidatorSpy.response = null;
 
   const sut = new SignupController({
-    requestBodyValidator: requestValidatorSpy
+    requestBodyValidator: requestBodyValidatorSpy
   });
 
   return {
     sut,
-    requestValidatorSpy
+    requestBodyValidatorSpy
   };
 };
 
@@ -112,12 +113,30 @@ describe('Given the SignupController', () => {
 
   describe('And the requestBodyValidator dependency is injected correctly', () => {
     test('Then I expect it calls the validate method with the expected params', async () => {
-      const { sut, requestValidatorSpy } = makeSut();
+      const { sut, requestBodyValidatorSpy } = makeSut();
       const request = { body: DataFakerHelper.getString() };
 
       await sut.handler(request);
 
-      expect(requestValidatorSpy.params).toEqual(request.body);
+      expect(requestBodyValidatorSpy.params).toEqual(request.body);
+    });
+  });
+
+  describe('And the validate method of requestBodyValidator dependency returns an error', () => {
+    let response;
+    const errorMessage = DataFakerHelper.getSentence({ words: 3 });
+
+    beforeAll(async () => {
+      const { sut, requestBodyValidatorSpy } = makeSut();
+      requestBodyValidatorSpy.response = errorMessage;
+      response = await sut.handler({ body: {} });
+    });
+
+    test('Then I expect it returns statusCode 400', () => {
+      expect(response.statusCode).toBe(400);
+    });
+    test('Then I expect it returns the body with a message indicating the error', () => {
+      expect(response.body).toEqual({ error: new InvalidRequestError(errorMessage).message });
     });
   });
 });
