@@ -16,7 +16,7 @@ class SignupController {
       const errors = this.requestBodyValidator.validate(httpRequest.body);
       if (errors) return HttpResponse.badRequest(new InvalidRequestError(errors));
 
-      await this.checkIfUserExistService.handler();
+      await this.checkIfUserExistService.handler(httpRequest.body);
 
       return 0;
     } catch (error) {
@@ -37,17 +37,33 @@ const makerequestBodyValidatorSpy = () => {
   return new RequestBodyValidatorSpy();
 };
 
+const makeCheckIfUserExistServiceSpy = () => {
+  class CheckIfUserExistServiceSpy {
+    async handler(params) {
+      this.params = params;
+      return this.response;
+    }
+  }
+
+  return new CheckIfUserExistServiceSpy();
+};
+
 const makeSut = () => {
   const requestBodyValidatorSpy = makerequestBodyValidatorSpy();
   requestBodyValidatorSpy.response = null;
 
+  const checkIfUserExistServiceSpy = makeCheckIfUserExistServiceSpy();
+  checkIfUserExistServiceSpy.response = null;
+
   const sut = new SignupController({
-    requestBodyValidator: requestBodyValidatorSpy
+    requestBodyValidator: requestBodyValidatorSpy,
+    checkIfUserExistService: checkIfUserExistServiceSpy
   });
 
   return {
     sut,
-    requestBodyValidatorSpy
+    requestBodyValidatorSpy,
+    checkIfUserExistServiceSpy
   };
 };
 
@@ -177,6 +193,17 @@ describe('Given the SignupController', () => {
 
     test('Then I expect it returns the body with InternalServerError message', () => {
       expect(response.body).toEqual({ error: new InternalServerError().message });
+    });
+  });
+
+  describe('And the checkIfUserExistService dependency is injected correctly', () => {
+    test('Then I expect it calls the validate method with the expected params', async () => {
+      const { sut, checkIfUserExistServiceSpy } = makeSut();
+      const request = { body: DataFakerHelper.getString() };
+
+      await sut.handler(request);
+
+      expect(checkIfUserExistServiceSpy.params).toEqual(request.body);
     });
   });
 });
