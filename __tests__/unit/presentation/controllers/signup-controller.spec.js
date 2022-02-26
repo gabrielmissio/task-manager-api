@@ -1,6 +1,9 @@
-const { InternalServerError, InvalidRequestError } = require('../../../../src/presentation/errors');
+const { InternalServerError, InvalidRequestError, ConflictError } = require('../../../../src/presentation/errors');
 const { MissingParamError } = require('../../../../src/utils/errors');
 const { HttpResponse } = require('../../../../src/presentation/helpers');
+const {
+  ErrorMessagesEnum: { USER_ALREADY_EXISTS }
+} = require('../../../../src/utils/enums');
 const { DataFakerHelper } = require('../../../helpers');
 
 class SignupController {
@@ -16,7 +19,8 @@ class SignupController {
       const errors = this.requestBodyValidator.validate(httpRequest.body);
       if (errors) return HttpResponse.badRequest(new InvalidRequestError(errors));
 
-      await this.checkIfUserExistService.handler(httpRequest.body);
+      const userExist = await this.checkIfUserExistService.handler(httpRequest.body);
+      if (userExist) return HttpResponse.conflict(new ConflictError(USER_ALREADY_EXISTS));
 
       return 0;
     } catch (error) {
@@ -204,6 +208,23 @@ describe('Given the SignupController', () => {
       await sut.handler(request);
 
       expect(checkIfUserExistServiceSpy.params).toEqual(request.body);
+    });
+  });
+
+  describe('And the handler method of checkIfUserExistService dependency returns an user', () => {
+    let response;
+    beforeAll(async () => {
+      const { sut, checkIfUserExistServiceSpy } = makeSut();
+      checkIfUserExistServiceSpy.response = DataFakerHelper.getObject();
+      response = await sut.handler({ body: {} });
+    });
+
+    test('Then I expect it returns statusCode 409', () => {
+      expect(response.statusCode).toBe(409);
+    });
+
+    test('Then I expect it returns the body with InternalServerError message', () => {
+      expect(response.body).toEqual({ error: new ConflictError(USER_ALREADY_EXISTS).message });
     });
   });
 });
