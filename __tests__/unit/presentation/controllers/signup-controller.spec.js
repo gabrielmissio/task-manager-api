@@ -7,9 +7,10 @@ const {
 const { DataFakerHelper } = require('../../../helpers');
 
 class SignupController {
-  constructor({ requestBodyValidator, checkIfUserExistService } = {}) {
+  constructor({ requestBodyValidator, checkIfUserExistService, signupService } = {}) {
     this.requestBodyValidator = requestBodyValidator;
     this.checkIfUserExistService = checkIfUserExistService;
+    this.signupService = signupService;
   }
 
   async handler(httpRequest) {
@@ -21,6 +22,8 @@ class SignupController {
 
       const userExist = await this.checkIfUserExistService.handler(httpRequest.body);
       if (userExist) return HttpResponse.conflict(new ConflictError(USER_ALREADY_EXISTS));
+
+      await this.signupService.handler();
 
       return 0;
     } catch (error) {
@@ -225,6 +228,47 @@ describe('Given the SignupController', () => {
 
     test('Then I expect it returns the body with InternalServerError message', () => {
       expect(response.body).toEqual({ error: new ConflictError(USER_ALREADY_EXISTS).message });
+    });
+  });
+
+  describe('And the SignupService dependency is not injected', () => {
+    let response;
+    beforeAll(async () => {
+      const { requestBodyValidatorSpy, checkIfUserExistServiceSpy } = makeSut();
+      const sut = new SignupController({
+        requestBodyValidator: requestBodyValidatorSpy,
+        checkIfUserExistService: checkIfUserExistServiceSpy
+      });
+      response = await sut.handler({ body: {} });
+    });
+
+    test('Then I expect it returns statusCode 500', () => {
+      expect(response.statusCode).toBe(500);
+    });
+
+    test('Then I expect it returns the body with InternalServerError message', () => {
+      expect(response.body).toEqual({ error: new InternalServerError().message });
+    });
+  });
+
+  describe('And the SignupService dependency has no handler method', () => {
+    let response;
+    beforeAll(async () => {
+      const { requestBodyValidatorSpy, checkIfUserExistServiceSpy } = makeSut();
+      const sut = new SignupController({
+        requestBodyValidator: requestBodyValidatorSpy,
+        checkIfUserExistService: checkIfUserExistServiceSpy,
+        signupService: {}
+      });
+      response = await sut.handler({ body: {} });
+    });
+
+    test('Then I expect it returns statusCode 500', () => {
+      expect(response.statusCode).toBe(500);
+    });
+
+    test('Then I expect it returns the body with InternalServerError message', () => {
+      expect(response.body).toEqual({ error: new InternalServerError().message });
     });
   });
 });
