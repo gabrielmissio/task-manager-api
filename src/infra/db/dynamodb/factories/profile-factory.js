@@ -1,5 +1,5 @@
 const { IdentifierGenerator } = require('../../../helpers');
-const { Encrypter } = require('../../../../utils/helpers');
+const { Encrypter, GetCurrentDate } = require('../../../../utils/helpers');
 
 const encrypter = new Encrypter();
 
@@ -17,7 +17,7 @@ class ProfileFactory {
   static async buildNewProfile(payload) {
     const PK = `USER#${IdentifierGenerator.newUUID()}`;
     const hash = await encrypter.hash({ value: payload.password });
-    const currentDate = new Date().toISOString();
+    const currentDate = GetCurrentDate.get();
 
     return {
       PK,
@@ -25,7 +25,8 @@ class ProfileFactory {
       name: payload.name,
       email: payload.email,
       password: hash,
-      createdAt: currentDate
+      createdAt: currentDate,
+      updatedAt: currentDate
     };
   }
 }

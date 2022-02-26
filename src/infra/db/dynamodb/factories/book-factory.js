@@ -4,7 +4,8 @@ class BookFactory {
       id: payload.SK.replace('BOOK#', ''),
       title: payload.title,
       description: payload.description,
-      createdAt: payload.createdAt
+      createdAt: payload.createdAt,
+      updatedAt: payload.updatedAt
     };
   }
 }

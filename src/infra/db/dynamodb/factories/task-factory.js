@@ -4,7 +4,8 @@ class TaskFactory {
       id: payload.SK.split('#TASK#')[1],
       description: payload.description,
       isDone: payload.isDone,
-      createdAt: payload.createdAt
+      createdAt: payload.createdAt,
+      updatedAt: payload.updatedAt
     };
   }
 }
