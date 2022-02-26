@@ -36,6 +36,13 @@ class HttpResponse {
     };
   }
 
+  static conflict(error) {
+    return {
+      statusCode: 409,
+      body: { error: error.message }
+    };
+  }
+
   static internalServerError() {
     return {
       statusCode: 500,

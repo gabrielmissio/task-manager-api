@@ -88,6 +88,22 @@ describe('Given the HttpResponse', () => {
     });
   });
 
+  describe('And the conflict method is called', () => {
+    let response;
+    const error = { message: DataFakerHelper.getString() };
+    beforeAll(() => {
+      const { sut } = makeSut();
+      response = sut.conflict(error);
+    });
+
+    test('Then I expect it returns statusCode 409', () => {
+      expect(response.statusCode).toBe(409);
+    });
+    test('Then I expect it returns the body with the provided error message', () => {
+      expect(response.body).toEqual({ error: error.message });
+    });
+  });
+
   describe('And the internalServerError method is called', () => {
     let response;
     beforeAll(() => {
