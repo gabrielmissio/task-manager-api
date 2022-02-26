@@ -4,8 +4,9 @@ const { HttpResponse } = require('../../../../src/presentation/helpers');
 const { DataFakerHelper } = require('../../../helpers');
 
 class SignupController {
-  constructor({ requestBodyValidator } = {}) {
+  constructor({ requestBodyValidator, checkIfUserExistService } = {}) {
     this.requestBodyValidator = requestBodyValidator;
+    this.checkIfUserExistService = checkIfUserExistService;
   }
 
   async handler(httpRequest) {
@@ -14,6 +15,8 @@ class SignupController {
 
       const errors = this.requestBodyValidator.validate(httpRequest.body);
       if (errors) return HttpResponse.badRequest(new InvalidRequestError(errors));
+
+      await this.checkIfUserExistService.handler();
 
       return 0;
     } catch (error) {
@@ -137,6 +140,43 @@ describe('Given the SignupController', () => {
     });
     test('Then I expect it returns the body with a message indicating the error', () => {
       expect(response.body).toEqual({ error: new InvalidRequestError(errorMessage).message });
+    });
+  });
+
+  describe('And the checkIfUserExistService dependency is not injected', () => {
+    let response;
+    beforeAll(async () => {
+      const { requestBodyValidatorSpy } = makeSut();
+      const sut = new SignupController({ requestBodyValidator: requestBodyValidatorSpy });
+      response = await sut.handler({ body: {} });
+    });
+
+    test('Then I expect it returns statusCode 500', () => {
+      expect(response.statusCode).toBe(500);
+    });
+
+    test('Then I expect it returns the body with InternalServerError message', () => {
+      expect(response.body).toEqual({ error: new InternalServerError().message });
+    });
+  });
+
+  describe('And the checkIfUserExistService dependency has no handler method', () => {
+    let response;
+    beforeAll(async () => {
+      const { requestBodyValidatorSpy } = makeSut();
+      const sut = new SignupController({
+        requestBodyValidator: requestBodyValidatorSpy,
+        checkIfUserExistService: {}
+      });
+      response = await sut.handler({ body: {} });
+    });
+
+    test('Then I expect it returns statusCode 500', () => {
+      expect(response.statusCode).toBe(500);
+    });
+
+    test('Then I expect it returns the body with InternalServerError message', () => {
+      expect(response.body).toEqual({ error: new InternalServerError().message });
     });
   });
 });
