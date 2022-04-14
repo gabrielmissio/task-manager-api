@@ -23,9 +23,8 @@ class SignupController {
       const userExist = await this.checkIfUserExistService.handler(httpRequest.body);
       if (userExist) return HttpResponse.conflict(new ConflictError(USER_ALREADY_EXISTS));
 
-      await this.signupService.handler();
-
-      return 0;
+      const newUser = await this.signupService.handler(httpRequest.body);
+      return HttpResponse.created(newUser);
     } catch (error) {
       console.error(error);
       return HttpResponse.exceptionHandler(error);
@@ -55,6 +54,17 @@ const makeCheckIfUserExistServiceSpy = () => {
   return new CheckIfUserExistServiceSpy();
 };
 
+const makeSignupServiceSpy = () => {
+  class SignupServiceSpy {
+    async handler(params) {
+      this.params = params;
+      return this.response;
+    }
+  }
+
+  return new SignupServiceSpy();
+};
+
 const makeSut = () => {
   const requestBodyValidatorSpy = makerequestBodyValidatorSpy();
   requestBodyValidatorSpy.response = null;
@@ -62,15 +72,20 @@ const makeSut = () => {
   const checkIfUserExistServiceSpy = makeCheckIfUserExistServiceSpy();
   checkIfUserExistServiceSpy.response = null;
 
+  const signupServiceSpy = makeSignupServiceSpy();
+  signupServiceSpy.response = DataFakerHelper.getObject();
+
   const sut = new SignupController({
     requestBodyValidator: requestBodyValidatorSpy,
-    checkIfUserExistService: checkIfUserExistServiceSpy
+    checkIfUserExistService: checkIfUserExistServiceSpy,
+    signupService: signupServiceSpy
   });
 
   return {
     sut,
     requestBodyValidatorSpy,
-    checkIfUserExistServiceSpy
+    checkIfUserExistServiceSpy,
+    signupServiceSpy
   };
 };
 
@@ -269,6 +284,28 @@ describe('Given the SignupController', () => {
 
     test('Then I expect it returns the body with InternalServerError message', () => {
       expect(response.body).toEqual({ error: new InternalServerError().message });
+    });
+  });
+
+  describe('And the SignupService dependency returns a new user', () => {
+    let response;
+    const request = DataFakerHelper.getObject();
+    const { sut, signupServiceSpy } = makeSut();
+
+    beforeAll(async () => {
+      response = await sut.handler({ body: request });
+    });
+
+    test('Then I expect it calls the SignupService depedency with the expected params', async () => {
+      expect(signupServiceSpy.params).toBe(request);
+    });
+
+    test('Then I expect it returns statusCode 201', () => {
+      expect(response.statusCode).toBe(201);
+    });
+
+    test('Then I expect it returns the body with the return of SignupService dependency', () => {
+      expect(response.body).toEqual(signupServiceSpy.response);
     });
   });
 });
