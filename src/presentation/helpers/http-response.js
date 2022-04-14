@@ -8,6 +8,13 @@ class HttpResponse {
     };
   }
 
+  static created(data) {
+    return {
+      statusCode: 201,
+      body: data
+    };
+  }
+
   static badRequest(error) {
     return {
       statusCode: 400,

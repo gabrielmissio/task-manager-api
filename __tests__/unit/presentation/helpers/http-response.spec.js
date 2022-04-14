@@ -26,6 +26,22 @@ describe('Given the HttpResponse', () => {
     });
   });
 
+  describe('And the created method is called', () => {
+    let response;
+    const data = DataFakerHelper.getObject();
+    beforeAll(() => {
+      const { sut } = makeSut();
+      response = sut.created(data);
+    });
+
+    test('Then I expect it returns statusCode 201', () => {
+      expect(response.statusCode).toBe(201);
+    });
+    test('Then I expect it returns the body with the provided value', () => {
+      expect(response.body).toBe(data);
+    });
+  });
+
   describe('And the badRequest method is called', () => {
     let response;
     const error = { message: DataFakerHelper.getSentence({ words: 3 }) };
